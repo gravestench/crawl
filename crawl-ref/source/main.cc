@@ -2523,7 +2523,7 @@ static void _check_spectral_weapon()
     you.triggered_spectral = false;
 }
 
-void world_reacts()
+static void _prepare_world_reaction()
 {
     // All markers should be activated at this point.
     ASSERT(!env.markers.need_activate());
@@ -2561,7 +2561,10 @@ void world_reacts()
         tiles.place_cursor(CURSOR_TUTORIAL, NO_CURSOR);
     }
 #endif
+}
 
+static void _advance_world()
+{
     _check_banished();
     _check_sanctuary();
     _check_trapped();
@@ -2611,7 +2614,10 @@ void world_reacts()
         _update_still_winds();
     if (!crawl_state.game_is_arena())
         player_reacts_to_monsters();
+}
 
+static void _present_world_reaction()
+{
     add_auto_excludes();
 
     viewwindow();
@@ -2627,7 +2633,10 @@ void world_reacts()
     if (!you_worship(GOD_NO_GOD))
         mprf(MSGCH_DIAGNOSTICS, "TENSION = %d", get_tension());
 #endif
+}
 
+static void _finish_world_reaction()
+{
     if (you.num_turns != -1)
     {
         if (you.num_turns < INT_MAX)
@@ -2659,6 +2668,14 @@ void world_reacts()
     // the loudest noise tracking for the next world_reacts cycle.
     you.los_noise_last_turn = you.los_noise_level;
     you.los_noise_level = 0;
+}
+
+void world_reacts()
+{
+    _prepare_world_reaction();
+    _advance_world();
+    _present_world_reaction();
+    _finish_world_reaction();
 }
 
 static command_type _get_next_cmd()

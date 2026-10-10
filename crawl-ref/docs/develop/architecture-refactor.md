@@ -60,6 +60,9 @@ a target to optimize at the expense of clear APIs.
 
 - Give input decoding, command execution, world advancement, and presentation
   distinct entry points. Preserve their existing order in `main.cc` first.
+- Begin with named preparation, world advancement, presentation, and turn
+  bookkeeping stages within `world_reacts()`; migrate their dependencies in
+  subsequent changes.
 - Make turn and command state explicit at those boundaries. Characterize free
   actions, repeat/again, Lua callbacks, monster reactions, and save triggers.
 
@@ -85,6 +88,8 @@ test runner could compile.
   suite completed successfully.
 - `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,408
   assertions in 67 test cases.
+- The existing `test/stress/woken_rest.rc` sprint scenario completed 1,000
+  automated turns under `util/fake_pty` after the turn-stage split.
 
 The fixed-seed command transcripts, old-save checks, equipped-item tests, and
 inventory/level transition tests remain to be added before the first two
