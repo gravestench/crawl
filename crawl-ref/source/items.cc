@@ -13,7 +13,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <functional> // mem_fn
-#include <limits>
 
 #include "adjust.h"
 #include "areas.h"
@@ -43,6 +42,7 @@
 #include "hints.h"
 #include "hiscores.h"
 #include "invent.h"
+#include "inventory-quantity.h"
 #include "item-name.h"
 #include "item-prop.h"
 #include "item-status-flag-type.h"
@@ -71,7 +71,6 @@
 #include "spl-book.h"
 #include "spl-util.h"
 #include "stash.h"
-#include "state.h"
 #include "state.h"
 #include "stringutil.h"
 #include "tag-version.h"
@@ -376,12 +375,14 @@ mon_inv_iterator mon_inv_iterator::operator++(int)
 */
 bool dec_inv_item_quantity(int obj, int amount)
 {
-    bool ret = false;
+    const auto plan = inventory_quantity::plan_decrease(you.inv[obj], amount);
+    const bool stack_removed =
+        plan == inventory_quantity::decrease_plan::remove_stack;
 
     if (you.equip[EQ_WEAPON] == obj)
         you.wield_change = true;
 
-    if (you.inv[obj].quantity <= amount)
+    if (stack_removed)
     {
         for (int i = EQ_FIRST_EQUIP; i < NUM_EQUIP; i++)
         {
@@ -397,13 +398,12 @@ bool dec_inv_item_quantity(int obj, int amount)
         }
 
         item_skills(you.inv[obj], you.skills_to_hide);
+    }
 
-        you.inv[obj].base_type = OBJ_UNASSIGNED;
-        you.inv[obj].quantity  = 0;
-        you.inv[obj].props.clear();
+    inventory_quantity::apply_decrease(you.inv[obj], amount, plan);
 
-        ret = true;
-
+    if (stack_removed)
+    {
         // If we're repeating a command, the repetitions used up the
         // item stack being repeated on, so stop rather than move onto
         // the next stack.
@@ -411,10 +411,8 @@ bool dec_inv_item_quantity(int obj, int amount)
         crawl_state.cancel_cmd_again();
         quiver::on_actions_changed();
     }
-    else
-        you.inv[obj].quantity -= amount;
 
-    return ret;
+    return stack_removed;
 }
 
 // Reduce quantity of a monster/grid item, do cleanup if item goes away.
@@ -446,7 +444,7 @@ void inc_inv_item_quantity(int obj, int amount)
     if (you.equip[EQ_WEAPON] == obj)
         you.wield_change = true;
 
-    you.inv[obj].quantity += amount;
+    inventory_quantity::increase(you.inv[obj], amount);
     if (you.inv[obj].quantity == amount) // not currently possible?
         quiver::on_actions_changed(true);
 }
@@ -804,9 +802,10 @@ static int _item_name_specialness(const item_def& item)
     return 0;
 }
 
-string item_message(vector<const item_def *> const &items)
+string item_message(vector<const item_def *> const &items,
+                    int summary_minimum)
 {
-    if (static_cast<int>(items.size()) >= Options.item_stack_summary_minimum)
+    if (static_cast<int>(items.size()) >= summary_minimum)
     {
         string out_string;
         vector<unsigned int> item_chars;
@@ -858,6 +857,11 @@ string item_message(vector<const item_def *> const &items)
     return join_strings(colour_names.begin(), colour_names.end(), "; ");
 }
 
+string item_message(vector<const item_def *> const &items)
+{
+    return item_message(items, Options.item_stack_summary_minimum);
+}
+
 void item_check()
 {
     describe_floor();
@@ -879,7 +883,8 @@ void item_check()
         return;
     }
 
-    string desc_string = item_message(items);
+    string desc_string = item_message(items,
+                                      Options.item_stack_summary_minimum);
     // Stack summary case
     if (static_cast<int>(items.size()) >= Options.item_stack_summary_minimum)
         mprf_nojoin(MSGCH_FLOOR_ITEMS, "Items here: %s.", desc_string.c_str());
@@ -1496,97 +1501,6 @@ void pickup(bool partial_quantity)
     }
     if (you.last_pickup.empty())
         you.last_pickup = tmp_l_p;
-}
-
-bool is_stackable_item(const item_def &item)
-{
-    if (!item.defined())
-        return false;
-
-    switch (item.base_type)
-    {
-        case OBJ_MISSILES:
-        case OBJ_SCROLLS:
-        case OBJ_POTIONS:
-        case OBJ_GOLD:
-#if TAG_MAJOR_VERSION == 34
-        case OBJ_FOOD:
-#endif
-            return true;
-        case OBJ_MISCELLANY:
-            switch (item.sub_type)
-            {
-                case MISC_ZIGGURAT:
-#if TAG_MAJOR_VERSION == 34
-                case MISC_SACK_OF_SPIDERS:
-#endif
-                    return true;
-                default:
-                    break;
-            }
-        default:
-            break;
-    }
-    return false;
-}
-
-bool items_similar(const item_def &item1, const item_def &item2)
-{
-    // Base and sub-types must always be the same to stack.
-    if (item1.base_type != item2.base_type || item1.sub_type != item2.sub_type)
-        return false;
-
-    if (item1.base_type == OBJ_GOLD || item1.base_type == OBJ_RUNES)
-        return true;
-
-    if (is_artefact(item1) != is_artefact(item2))
-        return false;
-    else if (is_artefact(item1)
-             && get_artefact_name(item1) != get_artefact_name(item2))
-    {
-        return false;
-    }
-
-    // Missiles with different egos shouldn't merge.
-    if (item1.base_type == OBJ_MISSILES && item1.brand != item2.brand)
-        return false;
-
-    // Don't merge trapping nets with other nets.
-    if (item1.is_type(OBJ_MISSILES, MI_THROWING_NET)
-        && item1.net_placed != item2.net_placed)
-    {
-        return false;
-    }
-
-#define NO_MERGE_FLAGS (ISFLAG_MIMIC | ISFLAG_SUMMONED)
-    if ((item1.flags & NO_MERGE_FLAGS) != (item2.flags & NO_MERGE_FLAGS))
-        return false;
-
-    // The inscriptions can differ if one of them is blank, but if they
-    // are differing non-blank inscriptions then don't stack.
-    if (item1.inscription != item2.inscription
-        && !item1.inscription.empty() && !item2.inscription.empty())
-    {
-        return false;
-    }
-
-    return true;
-}
-
-bool items_stack(const item_def &item1, const item_def &item2)
-{
-    // Both items must be stackable.
-    if (!is_stackable_item(item1) || !is_stackable_item(item2)
-        || static_cast<long long>(item1.quantity) + item2.quantity
-            > numeric_limits<decltype(item1.quantity)>::max())
-    {
-        return false;
-    }
-
-    return items_similar(item1, item2)
-        // Don't leak information when checking if an "(unknown)" shop item
-        // matches an unidentified item in inventory.
-        && fully_identified(item1) == fully_identified(item2);
 }
 
 static int _userdef_find_free_slot(const item_def &i)

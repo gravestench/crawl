@@ -1,0 +1,91 @@
+# Incremental architecture refactor
+
+This document tracks the refactor of Crawl's process-wide gameplay state. The
+goal is to make each gameplay operation's inputs and effects visible while
+preserving existing rules, seeded behavior, and save compatibility.
+
+## Current boundaries
+
+- `main.cc` constructs `you`, `env`, `crawl_state`, and both Lua interpreters.
+  It also handles input, command dispatch, turn advancement, presentation, and
+  save triggers.
+- `items.cc` combines item storage, inventory rules, pickup UI, identification,
+  and messages.
+- `state.h` mixes command state, startup state, UI flags, and gameplay state.
+- Tests often initialize a whole game to exercise a single rule. The player
+  fixture explicitly cannot model a dungeon level.
+
+In a text scan of the 307 top-level `.cc` files, 223 mention `you`, 158 mention
+`env`, and 145 mention `crawl_state`. These counts are a starting measure, not
+a target to optimize at the expense of clear APIs.
+
+## Rules for the migration
+
+1. Extract one behavior at a time. First characterize its observable results;
+   then move it behind an API with explicit dependencies. Keep the old entry
+   point as a temporary adapter for unmigrated callers.
+2. Pass the specific player, level, configuration, RNG, or output dependency a
+   function needs. Do not replace the globals with a generic context passed
+   everywhere.
+3. Keep turn order and RNG draw order unchanged while moving code. Save format
+   changes require separate compatibility work.
+4. Avoid simultaneous rule changes and architecture changes in the same patch.
+5. Remove each adapter once its callers have moved. Track remaining direct
+   global accesses in the migrated module.
+
+## Milestones
+
+### 1. Baseline and characterization
+
+- Build the console game and run `make catch2-tests` and the scripted game
+  tests in the supported toolchain.
+- Capture fixed-seed command transcripts for inventory actions, one combat
+  turn, a level transition, and save/load. Compare outcomes and RNG state on
+  both sides of each extraction.
+- Keep representative old saves for load/resave checks.
+
+### 2. Inventory vertical slice
+
+- Separate item quantity and stacking rules from equipment updates, command
+  repetition, quiver refresh, messages, and prompts.
+- Keep stack eligibility and compatibility rules in `item-stack.cc`, away from
+  pickup and menu control flow.
+- Pass the display threshold into item message formatting; keep the old
+  signature as an adapter while callers migrate.
+- Add tests for partial and complete stack consumption, equipped items, stack
+  merge decisions, and inventory/level transitions.
+- Preserve `items.h` entry points as adapters until callers are migrated.
+
+### 3. Turn pipeline
+
+- Give input decoding, command execution, world advancement, and presentation
+  distinct entry points. Preserve their existing order in `main.cc` first.
+- Make turn and command state explicit at those boundaries. Characterize free
+  actions, repeat/again, Lua callbacks, monster reactions, and save triggers.
+
+### 4. State ownership
+
+- Introduce a session composition root after the module APIs are explicit.
+  Move the player, level, command state, RNG, and Lua lifetimes into it in
+  separate changes.
+- Keep serialization at the boundary, with compatibility tests for old saves.
+
+## Baseline setup on this macOS checkout
+
+The bundled Lua submodule must be initialized. The generator scripts also need
+PyYAML. The default macOS Makefile path expects bundled zlib and SQLite; using
+`FORCE_PKGCONFIG=1` allows installed system libraries for a console build.
+The vendored Catch2 debugger trap needed an Apple Silicon fallback before its
+test runner could compile.
+
+## Verified on 2026-10-10
+
+- Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
+- After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
+  suite completed successfully.
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,408
+  assertions in 67 test cases.
+
+The fixed-seed command transcripts, old-save checks, equipped-item tests, and
+inventory/level transition tests remain to be added before the first two
+milestones are complete.

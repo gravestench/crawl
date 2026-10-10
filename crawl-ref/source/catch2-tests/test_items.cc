@@ -7,11 +7,85 @@
 #include "items.h"
 #include "item-prop.h"
 #include "item-prop-enum.h"
+#include "item-status-flag-type.h"
 #include "invent.h"
+#include "inventory-quantity.h"
 #include "player-equip.h"
 #include "potion-type.h"
 
 #include "test_player_fixture.h"
+
+TEST_CASE("Partial inventory consumption preserves the stack", "[inventory]")
+{
+    item_def item;
+    item.base_type = OBJ_SCROLLS;
+    item.quantity = 5;
+    item.inscription = "keep";
+
+    const auto plan = inventory_quantity::plan_decrease(item, 2);
+    REQUIRE(plan == inventory_quantity::decrease_plan::partial);
+    inventory_quantity::apply_decrease(item, 2, plan);
+    REQUIRE(item.base_type == OBJ_SCROLLS);
+    REQUIRE(item.quantity == 3);
+    REQUIRE(item.inscription == "keep");
+}
+
+TEST_CASE("Consuming an inventory stack preserves legacy slot metadata",
+          "[inventory]")
+{
+    item_def item;
+    item.base_type = OBJ_SCROLLS;
+    item.quantity = 2;
+    item.inscription = "keep";
+    item.link = 7;
+    item.props["test"] = 1;
+
+    const auto plan = inventory_quantity::plan_decrease(item, 2);
+    REQUIRE(plan == inventory_quantity::decrease_plan::remove_stack);
+    inventory_quantity::apply_decrease(item, 2, plan);
+    REQUIRE(item.base_type == OBJ_UNASSIGNED);
+    REQUIRE(item.quantity == 0);
+    REQUIRE(item.inscription == "keep");
+    REQUIRE(item.link == 7);
+    REQUIRE(item.props.empty());
+}
+
+TEST_CASE("Inventory consumption decision survives equipment callbacks",
+          "[inventory]")
+{
+    item_def item;
+    item.base_type = OBJ_SCROLLS;
+    item.quantity = 2;
+
+    const auto plan = inventory_quantity::plan_decrease(item, 2);
+    item.quantity = 3; // A callback can change state before consumption runs.
+    inventory_quantity::apply_decrease(item, 2, plan);
+
+    REQUIRE(item.base_type == OBJ_UNASSIGNED);
+    REQUIRE(item.quantity == 0);
+}
+
+TEST_CASE("Item stack rules distinguish inscriptions and summoned items",
+          "[inventory]")
+{
+    item_def first;
+    first.base_type = OBJ_SCROLLS;
+    first.sub_type = SCR_FEAR;
+    first.quantity = 2;
+    item_def second = first;
+
+    REQUIRE(is_stackable_item(first));
+    REQUIRE(items_similar(first, second));
+
+    first.inscription = "keep";
+    REQUIRE(items_similar(first, second));
+    second.inscription = "drop";
+    REQUIRE_FALSE(items_similar(first, second));
+
+    second.inscription = "keep";
+    second.flags |= ISFLAG_SUMMONED;
+    REQUIRE_FALSE(items_similar(first, second));
+}
 
 TEST_CASE( "Create item def", "[single-file]" ) {
     item_def foo;

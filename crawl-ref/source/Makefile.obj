@@ -87,9 +87,11 @@ hints.o \
 hiscores.o \
 initfile.o \
 invent.o \
+inventory-quantity.o \
 item-use.o \
 item-name.o \
 item-prop.o \
+item-stack.o \
 items.o \
 jobs.o \
 json.o \
