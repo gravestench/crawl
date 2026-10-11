@@ -16,9 +16,8 @@ preserving existing rules, seeded behavior, and save compatibility.
   looked at the global `crawl_state` instead of the instance they were called
   on. They now read their own fields; tests construct independent instances.
 - Command repeat cancellation now accepts an explicit player for its wizard
-  exception policy. Macro buffer flushing still checks the global
-  `crawl_state`; the decision is tested independently until input ownership
-  moves with the command pipeline.
+  exception policy. Macro buffer flushing now receives that state and player
+  for replay checks; the key buffer itself still has process-wide storage.
 - Delay-driven command interruptions now pass the player and command state
   explicitly; the macro input buffer is still process-wide.
 - The unused god-acting overloads that silently read `you.religion` are gone;

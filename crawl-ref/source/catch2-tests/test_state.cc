@@ -52,7 +52,9 @@ TEST_CASE("Wizard repeat policy checks the supplied player", "[state]")
     actor.turn_is_over = false;
     REQUIRE(session.can_cancel_cmd_repeat(actor));
 
-    session.repeat_cmd = CMD_NO_CMD;
+    session.cancel_cmd_repeat(actor);
+    REQUIRE(session.repeat_cmd == CMD_NO_CMD);
+
     REQUIRE_FALSE(session.can_cancel_cmd_repeat(actor));
     REQUIRE(session.can_cancel_cmd_repeat(actor, true));
 }

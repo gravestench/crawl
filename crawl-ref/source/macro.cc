@@ -49,7 +49,7 @@
 #include "options.h"
 #include "output.h"
 #include "prompt.h"
-#include "state.h"
+#include "player.h"
 #include "state.h"
 #include "stringutil.h"
 #include "syscalls.h"
@@ -933,8 +933,13 @@ static string _buffer_to_string()
  */
 void flush_input_buffer(int reason)
 {
+    flush_input_buffer(crawl_state, you, reason);
+}
+
+void flush_input_buffer(game_state &session, const player &actor, int reason)
+{
     ASSERT(reason != FLUSH_KEY_REPLAY_CANCEL
-           || crawl_state.is_replaying_keys() || crawl_state.cmd_repeat_start);
+           || session.is_replaying_keys() || session.cmd_repeat_start);
 
     ASSERT(reason != FLUSH_ABORT_MACRO || is_processing_macro());
 
@@ -943,7 +948,7 @@ void flush_input_buffer(int reason)
     if (macro_keys_left == 0)
         macro_keys_left = -1;
 
-    if (crawl_state.is_replaying_keys() && reason != FLUSH_ABORT_MACRO
+    if (session.is_replaying_keys() && reason != FLUSH_ABORT_MACRO
         && reason != FLUSH_KEY_REPLAY_CANCEL
         && reason != FLUSH_REPLAY_SETUP_FAILURE
         && reason != FLUSH_ON_FAILURE)
@@ -956,9 +961,9 @@ void flush_input_buffer(int reason)
         || reason == FLUSH_REPLAY_SETUP_FAILURE
         || reason == FLUSH_REPEAT_SETUP_DONE)
     {
-        if (crawl_state.nonempty_buffer_flush_errors && !Buffer.empty())
+        if (session.nonempty_buffer_flush_errors && !Buffer.empty())
         {
-            if (you.wizard) // crash -- intended for tests
+            if (actor.wizard) // crash -- intended for tests
             {
                 mprf(MSGCH_ERROR,
                     "Flushing non-empty key buffer (Buffer is '%s')",
@@ -973,7 +978,7 @@ void flush_input_buffer(int reason)
             const int key = Buffer.front();
             Buffer.pop_front();
             if (key == KEY_MACRO_ENABLE_MORE)
-                crawl_state.show_more_prompt = true;
+                session.show_more_prompt = true;
         }
         macro_keys_left = -1;
         expanded_keys_left = 0;

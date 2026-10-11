@@ -15,6 +15,8 @@
 using std::vector;
 
 class key_recorder;
+class player;
+struct game_state;
 typedef deque<int> keyseq;
 
 class key_recorder
@@ -47,6 +49,7 @@ int get_ch();
 int getch_with_command_macros();  // keymaps and macros (ie for commands)
 
 void flush_input_buffer(int reason);
+void flush_input_buffer(game_state &session, const player &actor, int reason);
 
 void macro_quick_add();
 void macro_menu();

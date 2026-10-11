@@ -157,10 +157,10 @@ void game_state::cancel_cmd_repeat(const player &actor, string reason,
         return;
 
     if (is_replaying_keys() || cmd_repeat_start)
-        flush_input_buffer(FLUSH_KEY_REPLAY_CANCEL);
+        flush_input_buffer(*this, actor, FLUSH_KEY_REPLAY_CANCEL);
 
     if (is_processing_macro())
-        flush_input_buffer(FLUSH_ABORT_MACRO);
+        flush_input_buffer(*this, actor, FLUSH_ABORT_MACRO);
 
     reset_cmd_repeat();
 
