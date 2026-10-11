@@ -149,7 +149,7 @@ void link_items()
         if (move_below)
         {
 
-            for (stack_iterator si(env.item[i].pos); si; ++si)
+            for (stack_iterator si(env, env.item[i].pos); si; ++si)
             {
                 if (!item_is_stationary(*si) || item_is_stationary_net(*si))
                     movable_ind = si->index();
@@ -240,7 +240,7 @@ static int _cull_items()
             if (grid_distance(you.pos(), *ri) <= 8)
                 continue;
 
-            for (stack_iterator si(*ri); si; ++si)
+            for (stack_iterator si(env, *ri); si; ++si)
             {
                 if (_item_ok_to_clean(si->index())
                     && (remove_all || _item_preferred_to_clean(si->index()))
@@ -267,19 +267,26 @@ static int _cull_items()
 
 /*---------------------------------------------------------------------*/
 stack_iterator::stack_iterator(const coord_def& pos, bool accessible)
+    : stack_iterator(env, accessible ? you.visible_igrd(pos) : env.igrid(pos))
 {
-    cur_link = accessible ? you.visible_igrd(pos) : env.igrid(pos);
-    if (cur_link != NON_ITEM)
-        next_link = env.item[cur_link].link;
-    else
-        next_link = NON_ITEM;
 }
 
 stack_iterator::stack_iterator(int start_link)
+    : stack_iterator(env, start_link)
+{
+}
+
+stack_iterator::stack_iterator(crawl_environment &level_, const coord_def& pos)
+    : stack_iterator(level_, level_.igrid(pos))
+{
+}
+
+stack_iterator::stack_iterator(crawl_environment &level_, int start_link)
+    : level(&level_)
 {
     cur_link = start_link;
     if (cur_link != NON_ITEM)
-        next_link = env.item[cur_link].link;
+        next_link = level->item[cur_link].link;
     else
         next_link = NON_ITEM;
 }
@@ -292,13 +299,13 @@ stack_iterator::operator bool() const
 item_def& stack_iterator::operator*() const
 {
     ASSERT(cur_link != NON_ITEM);
-    return env.item[cur_link];
+    return level->item[cur_link];
 }
 
 item_def* stack_iterator::operator->() const
 {
     ASSERT(cur_link != NON_ITEM);
-    return &env.item[cur_link];
+    return &level->item[cur_link];
 }
 
 int stack_iterator::index() const
@@ -310,7 +317,7 @@ const stack_iterator& stack_iterator::operator ++ ()
 {
     cur_link = next_link;
     if (cur_link != NON_ITEM)
-        next_link = env.item[cur_link].link;
+        next_link = level->item[cur_link].link;
     return *this;
 }
 
@@ -323,11 +330,17 @@ stack_iterator stack_iterator::operator++(int)
 
 bool stack_iterator::operator==(const stack_iterator& rhs) const
 {
-    return cur_link == rhs.cur_link;
+    return cur_link == rhs.cur_link
+           && (cur_link == NON_ITEM || level == rhs.level);
 }
 
 mon_inv_iterator::mon_inv_iterator(monster& _mon)
-    : mon(_mon)
+    : mon_inv_iterator(env, _mon)
+{
+}
+
+mon_inv_iterator::mon_inv_iterator(crawl_environment &level_, monster& _mon)
+    : level(&level_), mon(_mon)
 {
     type = static_cast<mon_inv_type>(0);
     if (mon.inv[type] == NON_ITEM)
@@ -342,13 +355,13 @@ mon_inv_iterator::operator bool() const
 item_def& mon_inv_iterator::operator*() const
 {
     ASSERT(mon.inv[type] != NON_ITEM);
-    return env.item[mon.inv[type]];
+    return level->item[mon.inv[type]];
 }
 
 item_def* mon_inv_iterator::operator->() const
 {
     ASSERT(mon.inv[type] != NON_ITEM);
-    return &env.item[mon.inv[type]];
+    return &level->item[mon.inv[type]];
 }
 
 mon_inv_iterator& mon_inv_iterator::operator ++ ()
@@ -514,7 +527,7 @@ void unlink_item(int dest)
 
     if (mons != nullptr)
     {
-        for (mon_inv_iterator ii(*mons); ii; ++ii)
+        for (mon_inv_iterator ii(env, *mons); ii; ++ii)
         {
             if (ii->index() == dest)
             {
@@ -564,7 +577,7 @@ void unlink_item(int dest)
         }
 
         // Okay, item is buried, find item that's on top of it.
-        for (stack_iterator si(env.item[dest].pos); si; ++si)
+        for (stack_iterator si(env, env.item[dest].pos); si; ++si)
         {
             // Find item linking to dest item.
             if (si->defined() && si->link == dest)
@@ -686,7 +699,7 @@ void item_was_destroyed(const item_def &item)
 
 void lose_item_stack(const coord_def& where)
 {
-    for (stack_iterator si(where); si; ++si)
+    for (stack_iterator si(env, where); si; ++si)
     {
         if (si ->defined()) // FIXME is this check necessary?
         {
@@ -707,7 +720,7 @@ int count_movable_items(int obj)
 {
     int result = 0;
 
-    for (stack_iterator si(obj); si; ++si)
+    for (stack_iterator si(env, obj); si; ++si)
     {
         if (!item_is_stationary(*si))
             ++result;
@@ -725,7 +738,7 @@ int count_movable_items(int obj)
 vector<item_def*> item_list_on_square(int obj)
 {
     vector<item_def*> items;
-    for (stack_iterator si(obj); si; ++si)
+    for (stack_iterator si(env, obj); si; ++si)
         items.push_back(& (*si));
     return items;
 }
@@ -735,7 +748,7 @@ vector<item_def*> item_list_on_square(int obj)
 vector<const item_def*> const_item_list_on_square(int obj)
 {
     vector<const item_def*> items;
-    for (stack_iterator si(obj); si; ++si)
+    for (stack_iterator si(env, obj); si; ++si)
         items.push_back(& (*si));
     return items;
 }
@@ -977,7 +990,7 @@ static bool _id_floor_item(item_def &item)
 /// Auto-ID whatever stuff the player stands on.
 void id_floor_items()
 {
-    for (stack_iterator si(you.pos()); si; ++si)
+    for (stack_iterator si(env, you.pos()); si; ++si)
         _id_floor_item(*si);
 }
 
@@ -1148,7 +1161,7 @@ static void _check_note_item(item_def &item)
 
 void origin_set(const coord_def& where)
 {
-    for (stack_iterator si(where); si; ++si)
+    for (stack_iterator si(env, where); si; ++si)
     {
         if (origin_known(*si))
             continue;
@@ -2169,7 +2182,7 @@ bool move_item_to_grid(int *const obj, const coord_def& p, bool silent)
     if (move_below || is_stackable_item(item))
     {
         // Look for similar item to stack:
-        for (stack_iterator si(p); si; ++si)
+        for (stack_iterator si(env, p); si; ++si)
         {
             // Check if item already linked here -- don't want to unlink it.
             if (ob == si->index())
@@ -2248,7 +2261,7 @@ void move_item_stack_to_grid(const coord_def& from, const coord_def& to)
         return;
 
     // Tell all items in stack what the new coordinate is.
-    for (stack_iterator si(from); si; ++si)
+    for (stack_iterator si(env, from); si; ++si)
     {
         si->pos = to;
 
@@ -2289,7 +2302,7 @@ bool copy_item_to_grid(item_def &item, const coord_def& p,
     // Loop through items at current location.
     if (is_stackable_item(item))
     {
-        for (stack_iterator si(p); si; ++si)
+        for (stack_iterator si(env, p); si; ++si)
         {
             if (items_stack(item, *si))
             {
@@ -2752,7 +2765,7 @@ static void _autoinscribe_item(item_def& item)
 
 static void _autoinscribe_floor_items()
 {
-    for (stack_iterator si(you.pos()); si; ++si)
+    for (stack_iterator si(env, you.pos()); si; ++si)
         _autoinscribe_item(*si);
 }
 
@@ -3161,7 +3174,7 @@ item_def *find_floor_item(object_class_type cls, int sub_type)
 {
     for (int y = 0; y < GYM; ++y)
         for (int x = 0; x < GXM; ++x)
-            for (stack_iterator si(coord_def(x,y)); si; ++si)
+            for (stack_iterator si(env, coord_def(x,y)); si; ++si)
                 if (si->defined()
                     && (si->is_type(cls, sub_type)
                         || si->base_type == cls && sub_type == -1)

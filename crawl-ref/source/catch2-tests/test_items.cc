@@ -2,8 +2,12 @@
 
 #include "AppHdr.h"
 
+#include <memory>
+
 #include "artefact.h"
 #include "art-enum.h"
+#include "dungeon.h"
+#include "env.h"
 #include "items.h"
 #include "item-prop.h"
 #include "item-prop-enum.h"
@@ -101,6 +105,35 @@ TEST_CASE("Stack compatibility uses supplied identification knowledge",
     REQUIRE(items_stack(first, second, true, true));
     REQUIRE_FALSE(items_stack(first, second, true, false));
     REQUIRE_FALSE(items_stack(first, second, false, true));
+}
+
+TEST_CASE("Item iterators read the supplied level's item storage",
+          "[inventory]")
+{
+    std::unique_ptr<crawl_environment> level(new crawl_environment);
+    const coord_def floor_pos(5, 5);
+    level->igrid(floor_pos) = 0;
+    level->item[0].base_type = OBJ_SCROLLS;
+    level->item[0].link = 1;
+    level->item[1].base_type = OBJ_WEAPONS;
+    level->item[1].link = NON_ITEM;
+
+    stack_iterator floor(*level, floor_pos);
+    REQUIRE(floor.index() == 0);
+    REQUIRE(floor->base_type == OBJ_SCROLLS);
+    ++floor;
+    REQUIRE(floor.index() == 1);
+    REQUIRE(floor->base_type == OBJ_WEAPONS);
+    ++floor;
+    REQUIRE(floor == stack_iterator::end(*level));
+
+    monster carrier;
+    carrier.inv[MSLOT_WEAPON] = 1;
+    mon_inv_iterator gear(*level, carrier);
+    REQUIRE(gear.slot() == MSLOT_WEAPON);
+    REQUIRE(gear->base_type == OBJ_WEAPONS);
+    ++gear;
+    REQUIRE_FALSE(gear);
 }
 
 TEST_CASE( "Create item def", "[single-file]" ) {

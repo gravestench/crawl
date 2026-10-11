@@ -22,6 +22,23 @@ In a text scan of the 307 top-level `.cc` files, 223 mention `you`, 158 mention
 `env`, and 145 mention `crawl_state`. These counts are a starting measure, not
 a target to optimize at the expense of clear APIs.
 
+## Audit hot spots and order of work
+
+| Unit | Size | Boundary to make explicit |
+| --- | ---: | --- |
+| `items.cc` | 4,675 lines | Level item storage, inventory changes, equipment effects, and UI prompts |
+| `main.cc` + `state.cc` | 3,729 lines | Command input, turn advancement, command repetition, and save triggers |
+| `random.cc` | 580 lines | Persistent stream ownership and stream choice for each rule |
+| `files.cc` + `tags.cc` | 11,579 lines | Save orchestration versus versioned field encoding |
+| `player.cc` + `dungeon.cc` | 15,814 lines | Player rules versus level rules, after callers have explicit state inputs |
+| `initfile.cc` | 5,748 lines | Parsed options and runtime configuration versus process-wide `Options` |
+
+The file sizes measure risk, not refactor priority. Inventory and RNG offer
+smaller rule boundaries with direct tests. Turn handling follows once command
+and world-reaction outcomes have fixed-seed coverage. Save orchestration and
+the larger player/dungeon modules should be changed only after those inputs
+are explicit; their versioned data must continue to load old files.
+
 ## Rules for the migration
 
 1. Extract one behavior at a time. First characterize its observable results;
@@ -55,6 +72,9 @@ a target to optimize at the expense of clear APIs.
   pickup and menu control flow.
 - The stack API accepts explicit identification knowledge; the original
   overload remains an adapter for callers using game-wide item knowledge.
+- Floor and monster inventory iterators accept an explicit level. `items.cc`
+  uses those constructors; other callers and the visibility-checked floor
+  constructor still use legacy global adapters.
 - Pass the display threshold into item message formatting; keep the old
   signature as an adapter while callers migrate.
 - Add tests for partial and complete stack consumption, equipped items, stack
@@ -96,9 +116,9 @@ test runner could compile.
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,431
-  assertions in 71 test cases, including item and RNG serialization checks
-  and parity between explicit and legacy random helpers.
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,439
+  assertions in 72 test cases, including item and RNG serialization checks,
+  explicit/legacy random helper parity, and independent level item iteration.
 - The existing `test/stress/woken_rest.rc` sprint scenario completed 1,000
   automated turns under `util/fake_pty` after the turn-stage split.
 - `test/refactor/fixtures/CompatRefactor.cs` is a fixed-seed save created

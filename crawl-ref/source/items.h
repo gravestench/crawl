@@ -16,6 +16,8 @@
 
 using std::vector;
 
+struct crawl_environment;
+
 // Ways to get items, other than finding them on the ground or looting them
 // from slain monsters.
 enum item_source_type
@@ -182,9 +184,15 @@ class stack_iterator : public iterator<forward_iterator_tag, item_def>
 public:
     explicit stack_iterator(const coord_def& pos, bool accessible = false);
     explicit stack_iterator(int start_link);
+    stack_iterator(crawl_environment &level, const coord_def& pos);
+    stack_iterator(crawl_environment &level, int start_link);
 
     bool operator==(const stack_iterator& rhs) const;
     static stack_iterator end() { return stack_iterator(NON_ITEM); };
+    static stack_iterator end(crawl_environment &level)
+    {
+        return stack_iterator(level, NON_ITEM);
+    }
 
     operator bool() const;
     item_def& operator *() const;
@@ -194,6 +202,7 @@ public:
     const stack_iterator& operator ++ ();
     stack_iterator operator ++ (int);
 private:
+    crawl_environment *level;
     int cur_link;
     int next_link;
 };
@@ -202,6 +211,7 @@ class mon_inv_iterator : public iterator<forward_iterator_tag, item_def>
 {
 public:
     explicit mon_inv_iterator(monster& _mon);
+    mon_inv_iterator(crawl_environment &level, monster& _mon);
 
     mon_inv_type slot() const
     {
@@ -215,6 +225,7 @@ public:
     mon_inv_iterator& operator ++ ();
     mon_inv_iterator operator ++ (int);
 private:
+    crawl_environment *level;
     monster& mon;
     mon_inv_type type;
 };
