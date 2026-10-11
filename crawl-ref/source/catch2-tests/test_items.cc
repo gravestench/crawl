@@ -246,6 +246,21 @@ static item_def simple_create_item(object_class_type base_type,
     return item;
 }
 
+TEST_CASE_METHOD(MockPlayerYouTestsFixture,
+                 "Consuming an equipped weapon clears its inventory slot",
+                 "[inventory]")
+{
+    you.inv[0] = simple_create_item(OBJ_WEAPONS, WPN_DAGGER);
+    you.inv[0].link = 0;
+    equip_item(EQ_WEAPON, 0, false, true);
+
+    REQUIRE(dec_inv_item_quantity(0, 1));
+    REQUIRE(you.inv[0].base_type == OBJ_UNASSIGNED);
+    REQUIRE(you.inv[0].quantity == 0);
+    REQUIRE(you.equip[EQ_WEAPON] == -1);
+    REQUIRE(you.wield_change);
+}
+
 static int find_inv_index_with_exact_item(object_class_type base_type, int sub_type){
 
     for (int i=0; i < ENDOFPACK; i++)

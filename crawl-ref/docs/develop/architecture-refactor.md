@@ -89,6 +89,8 @@ are explicit; their versioned data must continue to load old files.
   repetition, quiver refresh, messages, and prompts.
 - Equipment slot cleanup now takes the player explicitly and invokes the
   unwield callback before clearing the weapon slot.
+- The real inventory consumption entry point now has a regression test for an
+  equipped weapon reaching zero quantity.
 - Pending pickup and inscription requests now belong to `game_state` and reset
   with a game; their old `items.cc` globals and query wrappers are gone.
 - Keep stack eligibility and compatibility rules in `item-stack.cc`, away from
@@ -184,6 +186,6 @@ test runner could compile.
 5. Add old saves from supported versions before changing `files.cc` or
    `tags.cc`. Each must load, advance, and resave in the console test harness.
 
-Fixed-seed combat and level-transition transcripts, direct equipped-item
+Fixed-seed combat and level-transition transcripts, broader equipped-item
 consumption coverage, and inventory/level transition tests remain to complete
 the first two milestones. The codebase-wide refactor remains in progress.
