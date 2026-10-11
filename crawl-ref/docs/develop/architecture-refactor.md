@@ -89,6 +89,9 @@ are explicit; their versioned data must continue to load old files.
   repetition, quiver refresh, messages, and prompts.
 - Equipment slot cleanup now takes the player explicitly and invokes the
   unwield callback before clearing the weapon slot.
+- Inventory quantity mutation now takes the player and command state at its
+  entry point. Callbacks preserve unwield, skill, and quiver effect order;
+  `items.cc` delegates through a temporary global-state adapter.
 - The real inventory consumption entry point now has a regression test for an
   equipped weapon reaching zero quantity.
 - Pending pickup and inscription requests now belong to `game_state` and reset
@@ -160,8 +163,8 @@ test runner could compile.
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,511
-  assertions in 85 test cases, including item and RNG serialization checks,
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,527
+  assertions in 87 test cases, including item and RNG serialization checks,
   explicit/legacy random helper parity, and independent level item iteration
   and visibility rules, independent command state queries, and turn checkpoint
   policy.
@@ -174,12 +177,16 @@ test runner could compile.
 - The console `-test -seed 1` suite, old-save compatibility script, and
   fixed-seed turn stress script passed again after the command and turn-stage
   changes.
+- `test/refactor/check-combat-transition.sh` passed: seed 1 entered Abyss:1
+  after turn 43, killed a small abomination, and quit at turn 80 with the
+  expected weapon and HP. The seeded game suite, old-save check, and turn
+  stress check also passed after inventory mutation moved behind its API.
 
 ## Next migration gates
 
-1. Capture fixed-seed transcripts for equipped item consumption, a combat
-   exchange, a level transition, and command repeat/again. Check player state,
-   level state, messages, and RNG draw counts before and after each extraction.
+1. Extend the fixed-seed inventory and combat/transition checks with command
+   repeat/again, message, and RNG draw-count assertions before changing those
+   paths further.
 2. Move inventory equipment and quiver effects behind an API that takes the
    relevant player and command state. Preserve the current callback order.
    Remove the old `items.h` entry points after their callers move.
@@ -192,6 +199,6 @@ test runner could compile.
 5. Add old saves from supported versions before changing `files.cc` or
    `tags.cc`. Each must load, advance, and resave in the console test harness.
 
-Fixed-seed combat and level-transition transcripts, broader equipped-item
-consumption coverage, and inventory/level transition tests remain to complete
-the first two milestones. The codebase-wide refactor remains in progress.
+Broader equipped-item consumption coverage and inventory/level transition
+tests remain to complete the first two milestones. The codebase-wide refactor
+remains in progress.
