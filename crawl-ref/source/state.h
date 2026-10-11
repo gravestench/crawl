@@ -300,5 +300,6 @@ private:
     monster* mon;
 };
 
-bool interrupt_cmd_repeat(activity_interrupt ai,
+bool interrupt_cmd_repeat(game_state &session, const player &actor,
+                          activity_interrupt ai,
                           const activity_interrupt_data &at);

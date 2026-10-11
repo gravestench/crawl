@@ -248,13 +248,14 @@ void game_state::zero_turns_taken()
     cancel_cmd_repeat();
 }
 
-bool interrupt_cmd_repeat(activity_interrupt ai,
+bool interrupt_cmd_repeat(game_state &session, const player &actor,
+                          activity_interrupt ai,
                            const activity_interrupt_data &at)
 {
-    if (crawl_state.cmd_repeat_start)
+    if (session.cmd_repeat_start)
         return false;
 
-    if (crawl_state.repeat_cmd == CMD_WIZARD)
+    if (session.repeat_cmd == CMD_WIZARD)
         return false;
 
     switch (ai)
@@ -264,7 +265,7 @@ bool interrupt_cmd_repeat(activity_interrupt ai,
     case activity_interrupt::hp_loss:
     case activity_interrupt::monster_attacks:
     case activity_interrupt::mimic:
-        crawl_state.cancel_cmd_repeat("Command repetition interrupted.");
+        session.cancel_cmd_repeat(actor, "Command repetition interrupted.");
         return true;
 
     default:
@@ -275,16 +276,16 @@ bool interrupt_cmd_repeat(activity_interrupt ai,
     {
         const monster* mon = at.mons_data;
         ASSERT(mon);
-        if (!you.can_see(*mon))
+        if (!actor.can_see(*mon))
             return false;
 
-        if (crawl_state.cmd_repeat_started_unsafe
+        if (session.cmd_repeat_started_unsafe
             && at.context != SC_NEWLY_SEEN)
         {
             return false;
         }
 
-        crawl_state.cancel_cmd_repeat();
+        session.cancel_cmd_repeat(actor);
 
 #ifndef DEBUG_DIAGNOSTICS
         if (at.context == SC_NEWLY_SEEN)
@@ -295,7 +296,7 @@ bool interrupt_cmd_repeat(activity_interrupt ai,
                  get_monster_equipment_desc(mi, DESC_WEAPON).c_str());
         }
 
-        if (crawl_state.game_is_hints())
+        if (session.game_is_hints())
             hints_monster_seen(*mon);
 #else
         formatted_string fs(channel_to_colour(MSGCH_WARN));
@@ -304,7 +305,7 @@ bool interrupt_cmd_repeat(activity_interrupt ai,
         fs.add_glyph(get_mons_glyph(mi));
         fs.cprintf(") in view: (%d,%d), see_cell: %s",
                    mon->pos().x, mon->pos().y,
-                   you.see_cell(mon->pos())? "yes" : "no");
+                   actor.see_cell(mon->pos())? "yes" : "no");
         formatted_mpr(fs, MSGCH_WARN);
 #endif
 
@@ -313,19 +314,19 @@ bool interrupt_cmd_repeat(activity_interrupt ai,
 
     // If command repetition is being used to imitate the rest command,
     // then everything interrupts it.
-    if (crawl_state.repeat_cmd == CMD_WAIT)
+    if (session.repeat_cmd == CMD_WAIT)
     {
         if (ai == activity_interrupt::full_mp)
-            crawl_state.cancel_cmd_repeat("Magic restored.");
+            session.cancel_cmd_repeat(actor, "Magic restored.");
         else if (ai == activity_interrupt::full_hp)
-            crawl_state.cancel_cmd_repeat("HP restored");
+            session.cancel_cmd_repeat(actor, "HP restored");
         else
-            crawl_state.cancel_cmd_repeat("Command repetition interrupted.");
+            session.cancel_cmd_repeat(actor, "Command repetition interrupted.");
 
         return true;
     }
 
-    if (crawl_state.cmd_repeat_started_unsafe)
+    if (session.cmd_repeat_started_unsafe)
         return false;
 
     if (ai == activity_interrupt::hit_monster)
@@ -335,10 +336,10 @@ bool interrupt_cmd_repeat(activity_interrupt ai,
         // when the only monsters around are 0xp.
         const monster* mon = at.mons_data;
 
-        if (!mons_is_threatening(*mon) && mon->visible_to(&you))
+        if (!mons_is_threatening(*mon) && mon->visible_to(&actor))
             return false;
 
-        crawl_state.cancel_cmd_repeat("Command repetition interrupted.");
+        session.cancel_cmd_repeat(actor, "Command repetition interrupted.");
         return true;
     }
 

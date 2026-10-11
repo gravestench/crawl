@@ -1221,7 +1221,7 @@ bool interrupt_activity(activity_interrupt ai,
     }
 
     if (crawl_state.is_repeating_cmd())
-        return interrupt_cmd_repeat(ai, at);
+        return interrupt_cmd_repeat(crawl_state, you, ai, at);
 
     if (!you_are_delayed())
     {

@@ -19,6 +19,8 @@ preserving existing rules, seeded behavior, and save compatibility.
   exception policy. Macro buffer flushing still checks the global
   `crawl_state`; the decision is tested independently until input ownership
   moves with the command pipeline.
+- Delay-driven command interruptions now pass the player and command state
+  explicitly; the macro input buffer is still process-wide.
 - Tests often initialize a whole game to exercise a single rule. The player
   fixture explicitly cannot model a dungeon level.
 - `random.cc` held the persistent PCG streams, selected stream, and temporary
