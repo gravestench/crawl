@@ -753,11 +753,6 @@ string item_message(vector<const item_def *> const &items,
     return join_strings(colour_names.begin(), colour_names.end(), "; ");
 }
 
-string item_message(vector<const item_def *> const &items)
-{
-    return item_message(items, Options.item_stack_summary_minimum);
-}
-
 void item_check()
 {
     describe_floor();

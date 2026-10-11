@@ -80,8 +80,8 @@ are explicit; their versioned data must continue to load old files.
 - Item visibility in deep water now takes species explicitly. The player
   convenience method delegates to the level/species rule, and terrain code no
   longer reads `you` to make this decision.
-- Pass the display threshold into item message formatting; keep the old
-  signature as an adapter while callers migrate.
+- Pass the display threshold into item message formatting. The last caller of
+  the one-argument adapter has moved, so that adapter has been removed.
 - Add tests for partial and complete stack consumption, equipped items, stack
   merge decisions, and inventory/level transitions.
 - Preserve `items.h` entry points as adapters until callers are migrated.

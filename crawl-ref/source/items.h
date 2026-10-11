@@ -87,7 +87,6 @@ void destroy_item(item_def &item, bool never_created = false);
 void destroy_item(int dest, bool never_created = false);
 void lose_item_stack(const coord_def& where);
 
-string item_message(vector<const item_def *> const &items);
 string item_message(vector<const item_def *> const &items,
                     int summary_minimum);
 void item_check();

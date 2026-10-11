@@ -43,6 +43,7 @@
 #include "mon-death.h"
 #include "mon-tentacle.h"
 #include "nearby-danger.h"
+#include "options.h"
 #include "output.h"
 #include "prompt.h"
 #include "showsymb.h"
@@ -1710,7 +1711,8 @@ void direction_chooser::print_items_description() const
              menu_colour_item_name(*items[0], DESC_A).c_str());
     }
     else
-        mprf(MSGCH_FLOOR_ITEMS, "<cyan>Items here: </cyan> %s.", item_message(items).c_str());
+        mprf(MSGCH_FLOOR_ITEMS, "<cyan>Items here: </cyan> %s.",
+             item_message(items, Options.item_stack_summary_minimum).c_str());
 }
 
 void direction_chooser::print_floor_description(bool boring_too) const
