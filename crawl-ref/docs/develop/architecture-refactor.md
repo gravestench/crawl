@@ -134,6 +134,23 @@ test runner could compile.
   before persistent RNG ownership changed. The compatibility script loads it
   and saves after five more turns.
 
-Fixed-seed command transcripts for combat and level transitions, equipped-item
-tests, and inventory/level transition tests remain before the first two
-milestones are complete.
+## Next migration gates
+
+1. Capture fixed-seed transcripts for equipped item consumption, a combat
+   exchange, a level transition, and command repeat/again. Check player state,
+   level state, messages, and RNG draw counts before and after each extraction.
+2. Move inventory equipment and quiver effects behind an API that takes the
+   relevant player and command state. Preserve the current callback order.
+   Remove the old `items.h` entry points after their callers move.
+3. Give command decoding, execution, and turn bookkeeping specific input and
+   state arguments. Keep UI rendering and save triggers at their existing
+   points in the turn until the transcripts pass.
+4. Move RNG stream selection and temporary subgenerators into a session owner;
+   migrate rules to the explicit stream helpers. Then move player and level
+   lifetimes, followed by configuration and Lua.
+5. Add old saves from supported versions before changing `files.cc` or
+   `tags.cc`. Each must load, advance, and resave in the console test harness.
+
+The fixed-seed combat and transition transcripts, equipped-item tests, and
+inventory/level transition tests are still needed to complete the first two
+milestones. The codebase-wide refactor remains in progress.
