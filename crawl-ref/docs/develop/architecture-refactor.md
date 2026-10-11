@@ -74,7 +74,9 @@ are explicit; their versioned data must continue to load old files.
   overload remains an adapter for callers using game-wide item knowledge.
 - Floor and monster inventory iterators accept an explicit level. Visible floor
   iteration also accepts the observing species. `items.cc` uses those
-  constructors; other callers still have legacy adapters.
+  constructors; other callers still have legacy adapters. Their implementation
+  and visible floor lookup live in `item-iterators.cc`, separate from pickup
+  and inventory control flow.
 - Item visibility in deep water now takes species explicitly. The player
   convenience method delegates to the level/species rule, and terrain code no
   longer reads `you` to make this decision.
