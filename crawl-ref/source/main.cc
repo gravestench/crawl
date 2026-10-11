@@ -1001,18 +1001,10 @@ static void _update_place_stats()
         break;
 
     default:
-        // prev_was_rest is needed so that the turn in which
-        // a player is interrupted from resting is counted
-        // as a resting turn, rather than "other".
-        static bool prev_was_rest = false;
-
-        if (you_are_delayed()
-            && current_delay()->is_resting())
-        {
-            prev_was_rest = true;
-        }
-
-        if (prev_was_rest)
+        // The interrupted turn following a rest delay still counts as rest.
+        const bool resting_now = you_are_delayed()
+                                 && current_delay()->is_resting();
+        if (crawl_state.place_stat_counts_as_rest(resting_now))
         {
             delta.turns_resting++;
             delta.elapsed_resting += you.time_taken;
@@ -1023,11 +1015,6 @@ static void _update_place_stats()
             delta.elapsed_other += you.time_taken;
         }
 
-        if (!you_are_delayed()
-            || !current_delay()->is_resting())
-        {
-            prev_was_rest = false;
-        }
         break;
     }
 

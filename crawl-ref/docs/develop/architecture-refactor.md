@@ -102,6 +102,8 @@ are explicit; their versioned data must continue to load old files.
 - Begin with named preparation, world advancement, presentation, and turn
   bookkeeping stages within `world_reacts()`; migrate their dependencies in
   subsequent changes.
+- Rest turn classification now keeps its one-turn history in `game_state`
+  instead of a function-local static, and resets it when the game resets.
 - Make turn and command state explicit at those boundaries. Characterize free
   actions, repeat/again, Lua callbacks, monster reactions, and save triggers.
 

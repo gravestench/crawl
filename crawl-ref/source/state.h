@@ -157,6 +157,8 @@ protected:
     void reset_cmd_repeat();
     void reset_cmd_again();
 
+    bool previous_turn_was_rest;
+
     god_act_state         god_act;
     vector<god_act_state> god_act_stack;
 
@@ -175,6 +177,9 @@ public:
     bool is_repeating_cmd() const;
 
     bool can_cancel_cmd_repeat(const player &actor, bool force=false) const;
+
+    // Count the first turn after a rest delay as resting, then clear the flag.
+    bool place_stat_counts_as_rest(bool resting_now);
 
     void cancel_cmd_repeat(string reason = "", bool force=false);
     void cancel_cmd_repeat(const player &actor, string reason = "",

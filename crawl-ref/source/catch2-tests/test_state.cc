@@ -55,3 +55,18 @@ TEST_CASE("Wizard repeat policy checks the supplied player", "[state]")
     REQUIRE_FALSE(session.can_cancel_cmd_repeat(actor));
     REQUIRE(session.can_cancel_cmd_repeat(actor, true));
 }
+
+TEST_CASE("Rest turn accounting belongs to the game state", "[state]")
+{
+    game_state first;
+    game_state second;
+    REQUIRE_FALSE(first.place_stat_counts_as_rest(false));
+    REQUIRE(first.place_stat_counts_as_rest(true));
+    REQUIRE(first.place_stat_counts_as_rest(false));
+    REQUIRE_FALSE(first.place_stat_counts_as_rest(false));
+    REQUIRE_FALSE(second.place_stat_counts_as_rest(false));
+
+    first.place_stat_counts_as_rest(true);
+    first.reset_game();
+    REQUIRE_FALSE(first.place_stat_counts_as_rest(false));
+}
