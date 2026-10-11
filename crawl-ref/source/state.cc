@@ -112,6 +112,17 @@ bool game_state::is_repeating_cmd() const
     return repeat_cmd != CMD_NO_CMD;
 }
 
+command_type game_state::record_input_command(command_type command)
+{
+    const command_type previous = prev_cmd;
+    if (command != CMD_PREV_CMD_AGAIN && command != CMD_NO_CMD
+        && !is_replaying_keys())
+    {
+        prev_cmd = command;
+    }
+    return previous;
+}
+
 bool game_state::place_stat_counts_as_rest(bool resting_now)
 {
     const bool counts_as_rest = previous_turn_was_rest || resting_now;

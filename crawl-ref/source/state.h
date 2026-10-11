@@ -181,6 +181,10 @@ public:
 
     bool is_repeating_cmd() const;
 
+    // Return the command that preceded this input, then remember the new
+    // command unless it is replayed or is a redo/no-op command.
+    command_type record_input_command(command_type command);
+
     bool can_cancel_cmd_repeat(const player &actor, bool force=false) const;
 
     // Count the first turn after a rest delay as resting, then clear the flag.

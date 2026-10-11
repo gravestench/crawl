@@ -18,6 +18,27 @@ TEST_CASE("Command replay queries use their own game state", "[state]")
     REQUIRE(session.is_replaying_keys());
 }
 
+TEST_CASE("Command recording preserves the prior command and replay history",
+          "[state]")
+{
+    game_state session;
+    REQUIRE(session.record_input_command(CMD_WAIT) == CMD_NO_CMD);
+    REQUIRE(session.prev_cmd == CMD_WAIT);
+
+    REQUIRE(session.record_input_command(CMD_NO_CMD) == CMD_WAIT);
+    REQUIRE(session.prev_cmd == CMD_WAIT);
+    REQUIRE(session.record_input_command(CMD_PREV_CMD_AGAIN) == CMD_WAIT);
+    REQUIRE(session.prev_cmd == CMD_WAIT);
+
+    session.repeat_cmd = CMD_WAIT;
+    REQUIRE(session.record_input_command(CMD_MOVE_LEFT) == CMD_WAIT);
+    REQUIRE(session.prev_cmd == CMD_WAIT);
+
+    session.repeat_cmd = CMD_NO_CMD;
+    REQUIRE(session.record_input_command(CMD_MOVE_LEFT) == CMD_WAIT);
+    REQUIRE(session.prev_cmd == CMD_MOVE_LEFT);
+}
+
 TEST_CASE("Game type qualifiers use their own game state", "[state]")
 {
     game_state session;

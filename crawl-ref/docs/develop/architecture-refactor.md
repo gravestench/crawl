@@ -137,6 +137,9 @@ are explicit; their versioned data must continue to load old files.
 - Preparation and world advancement now receive player, level, and game state;
   presentation receives player and game state. Legacy game-effect helpers
   inside those stages still use global interfaces.
+- Command recording now belongs to `game_state::record_input_command`, which
+  returns the prior command for execution and preserves replay/redo history.
+  Independent-state tests cover regular input, no-op, redo, and replay.
 - Make turn and command state explicit at those boundaries. Characterize free
   actions, repeat/again, Lua callbacks, monster reactions, and save triggers.
 
@@ -168,8 +171,8 @@ test runner could compile.
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,540
-  assertions in 91 test cases, including item and RNG serialization checks,
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,550
+  assertions in 92 test cases, including item and RNG serialization checks,
   explicit/legacy random helper parity, and independent level item iteration
   and visibility rules, independent command state queries, and turn checkpoint
   policy.
@@ -192,6 +195,8 @@ test runner could compile.
   inventory stack or a floor stack cancels repeat and previous-command replay.
 - `test/refactor/check-repeat-again.sh` passed with seed 1: three repeated
   waits and one redo ended in a turn-four save with the expected prompt and HP.
+- The seeded game suite and all four scripted checks passed again after
+  command recording moved into `game_state`.
 
 ## Next migration gates
 

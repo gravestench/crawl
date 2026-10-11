@@ -1212,18 +1212,10 @@ static void _input()
         if (!crawl_state.is_replaying_keys())
             you.elapsed_time_at_last_input = you.elapsed_time;
 
-        // We need to capture this value, since crawl_state.prev_cmd is updated
-        // to be equal to the current command before process_command runs.
-        // This means that certain values CMD_PREV_CMD_AGAIN will be kept
-        // verbatim; the alternative would require keeping some more state. But
-        // it's not too important for the current use.
-        const command_type real_prev_cmd = crawl_state.prev_cmd;
-
-        if (cmd != CMD_PREV_CMD_AGAIN && cmd != CMD_NO_CMD
-            && !crawl_state.is_replaying_keys())
-        {
-            crawl_state.prev_cmd = cmd;
-        }
+        // process_command needs the prior command even after recording this
+        // input. Redo and replay preserve the command being repeated.
+        const command_type real_prev_cmd =
+            crawl_state.record_input_command(cmd);
 
         if (cmd != CMD_MOUSE_MOVE)
             c_input_reset(false);
