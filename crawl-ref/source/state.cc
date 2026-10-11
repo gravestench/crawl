@@ -109,25 +109,14 @@ bool game_state::is_repeating_cmd() const
 
 void game_state::cancel_cmd_repeat(string reason, bool force)
 {
-    if (!force && !is_repeating_cmd())
+    cancel_cmd_repeat(you, reason, force);
+}
+
+void game_state::cancel_cmd_repeat(const player &actor, string reason,
+                                   bool force)
+{
+    if (!can_cancel_cmd_repeat(actor, force))
         return;
-
-    if (repeat_cmd == CMD_WIZARD)
-    {
-        // Don't interrupt wizard testing of religion.
-        if (is_god_acting())
-            return;
-
-        // Don't interrupt wizard testing just because we can't
-        // move.
-        if (you.cannot_act())
-            return;
-
-        // We've probably just recovered from being unable to act;
-        // again, don't interrupt.
-        if (you.turn_is_over)
-            return;
-    }
 
     if (is_replaying_keys() || cmd_repeat_start)
         flush_input_buffer(FLUSH_KEY_REPLAY_CANCEL);
@@ -139,6 +128,30 @@ void game_state::cancel_cmd_repeat(string reason, bool force)
 
     if (!reason.empty())
         mpr(reason);
+}
+
+bool game_state::can_cancel_cmd_repeat(const player &actor, bool force) const
+{
+    if (!force && !is_repeating_cmd())
+        return false;
+
+    if (repeat_cmd == CMD_WIZARD)
+    {
+        // Don't interrupt wizard testing of religion.
+        if (is_god_acting())
+            return false;
+
+        // Don't interrupt wizard testing just because we can't
+        // move.
+        if (actor.cannot_act())
+            return false;
+
+        // We've probably just recovered from being unable to act;
+        // again, don't interrupt.
+        if (actor.turn_is_over)
+            return false;
+    }
+    return true;
 }
 
 void game_state::cancel_cmd_again(string reason, bool force)

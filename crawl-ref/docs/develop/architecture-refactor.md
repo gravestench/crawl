@@ -15,6 +15,10 @@ preserving existing rules, seeded behavior, and save compatibility.
 - Two `game_state` queries (`is_replaying_keys` and `game_type_qualifier`)
   looked at the global `crawl_state` instead of the instance they were called
   on. They now read their own fields; tests construct independent instances.
+- Command repeat cancellation now accepts an explicit player for its wizard
+  exception policy. Macro buffer flushing still checks the global
+  `crawl_state`; the decision is tested independently until input ownership
+  moves with the command pipeline.
 - Tests often initialize a whole game to exercise a single rule. The player
   fixture explicitly cannot model a dungeon level.
 - `random.cc` held the persistent PCG streams, selected stream, and temporary
@@ -71,6 +75,8 @@ are explicit; their versioned data must continue to load old files.
 
 - Separate item quantity and stacking rules from equipment updates, command
   repetition, quiver refresh, messages, and prompts.
+- Equipment slot cleanup now takes the player explicitly and invokes the
+  unwield callback before clearing the weapon slot.
 - Keep stack eligibility and compatibility rules in `item-stack.cc`, away from
   pickup and menu control flow.
 - The stack API accepts explicit identification knowledge; the original

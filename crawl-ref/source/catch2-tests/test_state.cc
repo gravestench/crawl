@@ -34,3 +34,24 @@ TEST_CASE("Game type qualifiers use their own game state", "[state]")
     session.type = GAME_TYPE_CUSTOM_SEED;
     REQUIRE(session.game_type_qualifier() == "-seeded");
 }
+
+TEST_CASE("Wizard repeat policy checks the supplied player", "[state]")
+{
+    game_state session;
+    player actor;
+    session.repeat_cmd = CMD_WIZARD;
+    actor.duration[DUR_PARALYSIS] = 1;
+
+    REQUIRE_FALSE(session.can_cancel_cmd_repeat(actor));
+
+    actor.duration[DUR_PARALYSIS] = 0;
+    actor.turn_is_over = true;
+    REQUIRE_FALSE(session.can_cancel_cmd_repeat(actor));
+
+    actor.turn_is_over = false;
+    REQUIRE(session.can_cancel_cmd_repeat(actor));
+
+    session.repeat_cmd = CMD_NO_CMD;
+    REQUIRE_FALSE(session.can_cancel_cmd_repeat(actor));
+    REQUIRE(session.can_cancel_cmd_repeat(actor, true));
+}

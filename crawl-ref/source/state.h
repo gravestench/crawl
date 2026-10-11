@@ -174,7 +174,11 @@ public:
 
     bool is_repeating_cmd() const;
 
+    bool can_cancel_cmd_repeat(const player &actor, bool force=false) const;
+
     void cancel_cmd_repeat(string reason = "", bool force=false);
+    void cancel_cmd_repeat(const player &actor, string reason = "",
+                           bool force=false);
     void cancel_cmd_again(string reason = "", bool force=false);
     void cancel_cmd_all(string reason = "");
 
