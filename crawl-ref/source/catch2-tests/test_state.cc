@@ -90,3 +90,23 @@ TEST_CASE("Pickup and inscription requests belong to one game", "[state]")
     first.reset_game();
     REQUIRE_FALSE(first.needs_autoinscribe());
 }
+
+TEST_CASE("Checkpoint policy uses the supplied turn and game state", "[state]")
+{
+    game_state session;
+    REQUIRE_FALSE(session.should_checkpoint_after_turn(256, false));
+
+    session.save_after_turn = true;
+    REQUIRE(session.should_checkpoint_after_turn(1, false));
+    REQUIRE_FALSE(session.should_checkpoint_after_turn(1, true));
+
+    session.disables.set(DIS_SAVE_CHECKPOINTS);
+    REQUIRE_FALSE(session.should_checkpoint_after_turn(1, false));
+    session.disables.set(DIS_SAVE_CHECKPOINTS, false);
+
+    session.save_after_turn = false;
+    session.type = GAME_TYPE_SPRINT;
+    REQUIRE_FALSE(session.should_checkpoint_after_turn(255, false));
+    REQUIRE(session.should_checkpoint_after_turn(256, false));
+    REQUIRE_FALSE(session.should_checkpoint_after_turn(256, true));
+}

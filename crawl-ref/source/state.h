@@ -183,6 +183,8 @@ public:
     // Count the first turn after a rest delay as resting, then clear the flag.
     bool place_stat_counts_as_rest(bool resting_now);
 
+    bool should_checkpoint_after_turn(int turn_count, bool delayed) const;
+
     bool needs_autopickup() const;
     void request_autopickup(bool requested = true);
     bool needs_autoinscribe() const;

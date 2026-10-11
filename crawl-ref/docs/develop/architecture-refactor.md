@@ -106,6 +106,9 @@ are explicit; their versioned data must continue to load old files.
   subsequent changes.
 - Rest turn classification now keeps its one-turn history in `game_state`
   instead of a function-local static, and resets it when the game resets.
+- The checkpoint decision now reads its own `game_state` and receives the
+  completed turn and delay status explicitly; save execution remains in the
+  same turn stage.
 - Make turn and command state explicit at those boundaries. Characterize free
   actions, repeat/again, Lua callbacks, monster reactions, and save triggers.
 

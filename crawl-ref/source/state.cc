@@ -119,6 +119,12 @@ bool game_state::place_stat_counts_as_rest(bool resting_now)
     return counts_as_rest;
 }
 
+bool game_state::should_checkpoint_after_turn(int turn_count, bool delayed) const
+{
+    return ((game_is_sprint() && !(turn_count % 256)) || save_after_turn)
+           && !delayed && !disables[DIS_SAVE_CHECKPOINTS];
+}
+
 bool game_state::needs_autopickup() const
 {
     return pending_autopickup;
