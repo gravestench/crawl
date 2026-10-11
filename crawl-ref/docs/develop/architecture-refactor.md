@@ -167,8 +167,8 @@ test runner could compile.
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,534
-  assertions in 89 test cases, including item and RNG serialization checks,
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,540
+  assertions in 91 test cases, including item and RNG serialization checks,
   explicit/legacy random helper parity, and independent level item iteration
   and visibility rules, independent command state queries, and turn checkpoint
   policy.
@@ -187,6 +187,8 @@ test runner could compile.
   stress check also passed after inventory mutation moved behind its API.
 - Those four game checks passed again after floor-item quantity changes moved
   behind the explicit level and command-state API.
+- Independent command-state tests now verify that consuming either an
+  inventory stack or a floor stack cancels repeat and previous-command replay.
 
 ## Next migration gates
 

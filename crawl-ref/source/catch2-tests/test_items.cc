@@ -171,6 +171,23 @@ TEST_CASE("Inventory increase refreshes quiver only for a new stack",
     REQUIRE(refreshes == 1);
 }
 
+TEST_CASE("Consuming a stack cancels repeat and redo on its command state",
+          "[inventory][state]")
+{
+    player owner;
+    game_state commands;
+    owner.inv[4].base_type = OBJ_SCROLLS;
+    owner.inv[4].quantity = 1;
+    commands.repeat_cmd = CMD_WAIT;
+    commands.doing_prev_cmd_again = true;
+
+    REQUIRE(inventory_mutation::decrease(owner, commands, 4, 1, {
+        [] {}, [](const item_def &) {}, [](bool) {}
+    }));
+    REQUIRE(commands.repeat_cmd == CMD_NO_CMD);
+    REQUIRE_FALSE(commands.doing_prev_cmd_again);
+}
+
 TEST_CASE("Floor quantity updates affect only the supplied level", "[inventory]")
 {
     std::unique_ptr<crawl_environment> first(new crawl_environment);
@@ -222,6 +239,24 @@ TEST_CASE("Partial floor consumption leaves destruction alone", "[inventory]")
 
     REQUIRE_FALSE(removed);
     REQUIRE(level->item[3].quantity == 3);
+}
+
+TEST_CASE("Floor stack removal cancels repeat and redo on its command state",
+          "[inventory][state]")
+{
+    std::unique_ptr<crawl_environment> level(new crawl_environment);
+    game_state commands;
+    player actor;
+    level->item[3].base_type = OBJ_SCROLLS;
+    level->item[3].quantity = 1;
+    commands.repeat_cmd = CMD_WAIT;
+    commands.doing_prev_cmd_again = true;
+
+    REQUIRE(level_item_quantity::decrease(
+        *level, commands, actor, 3, 1,
+        [&](int slot) { level->item[slot].clear(); }));
+    REQUIRE(commands.repeat_cmd == CMD_NO_CMD);
+    REQUIRE_FALSE(commands.doing_prev_cmd_again);
 }
 
 TEST_CASE("Item stack rules distinguish inscriptions and summoned items",
