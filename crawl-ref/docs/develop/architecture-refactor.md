@@ -126,6 +126,9 @@ are explicit; their versioned data must continue to load old files.
 - Turn bookkeeping now receives the player, level, and game state at its
   entry point. Delay inspection and the save calls still use their existing
   global interfaces.
+- Preparation and world advancement now receive player, level, and game state;
+  presentation receives player and game state. Legacy game-effect helpers
+  inside those stages still use global interfaces.
 - Make turn and command state explicit at those boundaries. Characterize free
   actions, repeat/again, Lua callbacks, monster reactions, and save triggers.
 

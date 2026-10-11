@@ -2502,25 +2502,26 @@ static void _update_still_winds()
     end_still_winds();
 }
 
-static void _check_spectral_weapon()
+static void _check_spectral_weapon(player &actor)
 {
-    if (!you.triggered_spectral)
-        if (monster* sw = find_spectral_weapon(&you))
+    if (!actor.triggered_spectral)
+        if (monster* sw = find_spectral_weapon(&actor))
             end_spectral_weapon(sw, false, true);
-    you.triggered_spectral = false;
+    actor.triggered_spectral = false;
 }
 
-static void _prepare_world_reaction()
+static void _prepare_world_reaction(player &actor, crawl_environment &level,
+                                    game_state &session)
 {
     // All markers should be activated at this point.
-    ASSERT(!env.markers.need_activate());
+    ASSERT(!level.markers.need_activate());
 
     fire_final_effects();
 
-    if (crawl_state.viewport_monster_hp || crawl_state.viewport_weapons)
+    if (session.viewport_monster_hp || session.viewport_weapons)
     {
-        crawl_state.viewport_monster_hp = false;
-        crawl_state.viewport_weapons = false;
+        session.viewport_monster_hp = false;
+        session.viewport_weapons = false;
         viewwindow();
         update_screen();
     }
@@ -2532,17 +2533,17 @@ static void _prepare_world_reaction()
 
     reset_show_terrain();
 
-    crawl_state.clear_mon_acting();
+    session.clear_mon_acting();
 
-    if (!crawl_state.game_is_arena())
+    if (!session.game_is_arena())
     {
-        you.turn_is_over = true;
+        actor.turn_is_over = true;
         religion_turn_end();
-        crawl_state.clear_god_acting();
+        session.clear_god_acting();
     }
 
 #ifdef USE_TILE
-    if (crawl_state.game_is_hints())
+    if (session.game_is_hints())
     {
         tiles.clear_text_tags(TAG_TUTORIAL);
         tiles.place_cursor(CURSOR_TUTORIAL, NO_CURSOR);
@@ -2550,16 +2551,17 @@ static void _prepare_world_reaction()
 #endif
 }
 
-static void _advance_world()
+static void _advance_world(player &actor, crawl_environment &level,
+                           game_state &session)
 {
     _check_banished();
     _check_sanctuary();
     _check_trapped();
-    _check_spectral_weapon();
+    _check_spectral_weapon(actor);
 
     run_environment_effects();
 
-    if (!crawl_state.game_is_arena())
+    if (!session.game_is_arena())
         player_reacts();
 
     abyss_morph();
@@ -2572,9 +2574,9 @@ static void _advance_world()
 
     _check_banished();
 
-    ASSERT(you.time_taken >= 0);
-    you.elapsed_time += you.time_taken;
-    if (you.elapsed_time >= 2*1000*1000*1000)
+    ASSERT(actor.time_taken >= 0);
+    actor.elapsed_time += actor.time_taken;
+    if (actor.elapsed_time >= 2*1000*1000*1000)
     {
         // 2B of 1/10 turns. A 32-bit signed int can hold 2.1B.
         // The worst case of mummy scumming had 92M turns, the second worst
@@ -2595,23 +2597,24 @@ static void _advance_world()
 
     handle_time();
     manage_clouds();
-    if (env.level_state & LSTATE_GOLUBRIA)
-        _update_golubria_traps(you.time_taken);
-    if (env.level_state & LSTATE_STILL_WINDS)
+    if (level.level_state & LSTATE_GOLUBRIA)
+        _update_golubria_traps(actor.time_taken);
+    if (level.level_state & LSTATE_STILL_WINDS)
         _update_still_winds();
-    if (!crawl_state.game_is_arena())
+    if (!session.game_is_arena())
         player_reacts_to_monsters();
 }
 
-static void _present_world_reaction()
+static void _present_world_reaction(const player &actor,
+                                    const game_state &session)
 {
     add_auto_excludes();
 
     viewwindow();
     update_screen();
 
-    if (you.cannot_act() && any_messages()
-        && crawl_state.repeat_cmd != CMD_WIZARD)
+    if (actor.cannot_act() && any_messages()
+        && session.repeat_cmd != CMD_WIZARD)
     {
         more();
     }
@@ -2658,9 +2661,9 @@ static void _finish_world_reaction(player &actor, crawl_environment &level,
 
 void world_reacts()
 {
-    _prepare_world_reaction();
-    _advance_world();
-    _present_world_reaction();
+    _prepare_world_reaction(you, env, crawl_state);
+    _advance_world(you, env, crawl_state);
+    _present_world_reaction(you, crawl_state);
     _finish_world_reaction(you, env, crawl_state);
 }
 
