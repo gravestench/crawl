@@ -1,0 +1,18 @@
+# Repeat wait three times, redo it once, then save on turn four.
+name = RepeatRefactor
+species = mu
+background = ar
+restart_after_game = false
+show_more = false
+
+: started = false
+: function ready()
+:   if not started then
+:     started = true
+:     crawl.sendkeys("03.")
+:   elseif you.turns() == 3 then
+:     crawl.sendkeys("`")
+:   elseif you.turns() >= 4 then
+:     crawl.sendkeys(string.char(19))
+:   end
+: end

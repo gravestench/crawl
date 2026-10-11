@@ -190,12 +190,13 @@ test runner could compile.
   behind the explicit level and command-state API.
 - Independent command-state tests now verify that consuming either an
   inventory stack or a floor stack cancels repeat and previous-command replay.
+- `test/refactor/check-repeat-again.sh` passed with seed 1: three repeated
+  waits and one redo ended in a turn-four save with the expected prompt and HP.
 
 ## Next migration gates
 
-1. Extend the fixed-seed inventory and combat/transition checks with command
-   repeat/again, message, and RNG draw-count assertions before changing those
-   paths further.
+1. Extend the fixed-seed inventory, combat/transition, and repeat/again checks
+   with RNG draw-count assertions before changing those paths further.
 2. Move inventory equipment and quiver effects behind an API that takes the
    relevant player and command state. Preserve the current callback order.
    Remove the old `items.h` entry points after their callers move.

@@ -18,3 +18,7 @@ same old save.
 enters Abyss:1, and checks the turn-80 character file for the level transition,
 equipped weapon, HP, and a melee kill. These scripts require the console game
 and `util/fake_pty` to be built first.
+
+`check-repeat-again.sh` uses seed 1 to repeat a wait command three times, redo
+it once, and save at turn four. It checks the repeat prompt, player HP, and
+saved game.
