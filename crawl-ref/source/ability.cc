@@ -1316,7 +1316,7 @@ bool activate_ability()
     if (talents.empty())
     {
         no_ability_msg();
-        crawl_state.zero_turns_taken();
+        crawl_state.zero_turns_taken(you);
         return false;
     }
 
@@ -1358,7 +1358,7 @@ bool activate_ability()
         if (selected == -1)
         {
             canned_msg(MSG_OK);
-            crawl_state.zero_turns_taken();
+            crawl_state.zero_turns_taken(you);
             return false;
         }
     }
@@ -1378,7 +1378,7 @@ bool activate_ability()
                 if (selected == -1)
                 {
                     canned_msg(MSG_OK);
-                    crawl_state.zero_turns_taken();
+                    crawl_state.zero_turns_taken(you);
                     return false;
                 }
             }
@@ -1386,7 +1386,7 @@ bool activate_ability()
                      || keyin == '\n')
             {
                 canned_msg(MSG_OK);
-                crawl_state.zero_turns_taken();
+                crawl_state.zero_turns_taken(you);
                 return false;
             }
             else if (isaalpha(keyin))
@@ -1405,7 +1405,7 @@ bool activate_ability()
                 if (selected < 0)
                 {
                     mpr("You can't do that.");
-                    crawl_state.zero_turns_taken();
+                    crawl_state.zero_turns_taken(you);
                     return false;
                 }
             }
@@ -2216,7 +2216,7 @@ bool activate_talent(const talent& tal, dist *target)
 
     if (_check_ability_dangerous(abil.ability) || !_check_ability_possible(abil))
     {
-        crawl_state.zero_turns_taken();
+        crawl_state.zero_turns_taken(you);
         return false;
     }
 
@@ -2269,14 +2269,14 @@ bool activate_talent(const talent& tal, dist *target)
 
         if (!spell_direction(*target, beam, &args))
         {
-            crawl_state.zero_turns_taken();
+            crawl_state.zero_turns_taken(you);
             return false;
         }
 
         if (testbits(abil.flags, abflag::not_self) && target->isMe())
         {
             canned_msg(MSG_UNTHINKING_ACT);
-            crawl_state.zero_turns_taken();
+            crawl_state.zero_turns_taken(you);
             return false;
         }
     }
@@ -2298,7 +2298,7 @@ bool activate_talent(const talent& tal, dist *target)
             you.turn_is_over = true;
             return false;
         case spret::abort:
-            crawl_state.zero_turns_taken();
+            crawl_state.zero_turns_taken(you);
             return false;
         case spret::none:
         default:

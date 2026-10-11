@@ -2861,7 +2861,7 @@ static void _check_cmd_repeat(int last_turn)
         // should be prevented in cmd_is_repeatable(). If
         // a command sometimes takes zero turns (because it
         // can't be done, for instance), then
-        // crawl_state.zero_turns_taken() should be called when
+        // crawl_state.zero_turns_taken(you) should be called when
         // it does take zero turns, to cancel command repetition
         // before we reach here.
 #ifdef WIZARD

@@ -770,7 +770,7 @@ spret cast_a_spell(bool check_range, spell_type spell, dist *_target,
 
     if (!can_cast_spells())
     {
-        crawl_state.zero_turns_taken();
+        crawl_state.zero_turns_taken(you);
         return spret::abort;
     }
 
@@ -888,7 +888,7 @@ spret cast_a_spell(bool check_range, spell_type spell, dist *_target,
         if (key_is_escape(keyin))
         {
             canned_msg(MSG_OK);
-            crawl_state.zero_turns_taken();
+            crawl_state.zero_turns_taken(you);
             return spret::abort;
         }
         else if (Options.enable_recast_spell
@@ -899,7 +899,7 @@ spret cast_a_spell(bool check_range, spell_type spell, dist *_target,
         else if (!isaalpha(keyin))
         {
             mpr("You don't know that spell.");
-            crawl_state.zero_turns_taken();
+            crawl_state.zero_turns_taken(you);
             return spret::abort;
         }
         else
@@ -909,7 +909,7 @@ spret cast_a_spell(bool check_range, spell_type spell, dist *_target,
     if (spell == SPELL_NO_SPELL)
     {
         mpr("You don't know that spell.");
-        crawl_state.zero_turns_taken();
+        crawl_state.zero_turns_taken(you);
         return spret::abort;
     }
 
@@ -918,7 +918,7 @@ spret cast_a_spell(bool check_range, spell_type spell, dist *_target,
     if (!reason.empty())
     {
         mpr(reason);
-        crawl_state.zero_turns_taken();
+        crawl_state.zero_turns_taken(you);
         return spret::abort;
     }
 
@@ -935,7 +935,7 @@ spret cast_a_spell(bool check_range, spell_type spell, dist *_target,
             range_view_annotator show_range(&range);
             delay(50);
         }
-        crawl_state.zero_turns_taken();
+        crawl_state.zero_turns_taken(you);
         return spret::abort;
     }
 
@@ -950,7 +950,7 @@ spret cast_a_spell(bool check_range, spell_type spell, dist *_target,
             true, 'n'))
         {
             canned_msg(MSG_OK);
-            crawl_state.zero_turns_taken();
+            crawl_state.zero_turns_taken(you);
             return spret::abort;
         }
     }
@@ -972,7 +972,7 @@ spret cast_a_spell(bool check_range, spell_type spell, dist *_target,
         || you.divine_exegesis && cast_result == spret::fail)
     {
         if (cast_result == spret::abort)
-            crawl_state.zero_turns_taken();
+            crawl_state.zero_turns_taken(you);
         // Return the MP since the spell is aborted.
         refund_mp(cost);
         if (_majin_charge_hp())

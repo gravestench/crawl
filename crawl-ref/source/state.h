@@ -200,7 +200,7 @@ public:
     void cant_cmd_again(string reason = "");
     void cant_cmd_any(string reason = "");
 
-    void zero_turns_taken();
+    void zero_turns_taken(const player &actor);
 
     void check_term_size() const
     {
@@ -211,9 +211,7 @@ public:
     bool     is_god_acting() const;
     bool     is_god_retribution() const;
     god_type which_god_acting() const;
-    void     inc_god_acting(bool is_retribution = false);
     void     inc_god_acting(god_type which_god, bool is_retribution = false);
-    void     dec_god_acting();
     void     dec_god_acting(god_type which_god);
     void     clear_god_acting();
 
@@ -238,7 +236,7 @@ public:
     bool game_is_hints() const;
     bool game_is_hints_tutorial() const;
 
-    bool seed_is_known() const;
+    bool seed_is_known(const player &actor) const;
 
     // Save subdirectory used for games such as Sprint.
     string game_type_name() const;

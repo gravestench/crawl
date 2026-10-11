@@ -92,7 +92,7 @@ static string _get_version_information()
 static string _get_version_features()
 {
     string result;
-    if (crawl_state.seed_is_known())
+    if (crawl_state.seed_is_known(you))
     {
         if (you.fully_seeded)
         {

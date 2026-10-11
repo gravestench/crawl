@@ -1267,7 +1267,7 @@ bool evoke_item(int slot, dist *preselect)
     if (!unevokable)
         you.turn_is_over = true;
     else
-        crawl_state.zero_turns_taken();
+        crawl_state.zero_turns_taken(you);
 
     return did_work;
 }

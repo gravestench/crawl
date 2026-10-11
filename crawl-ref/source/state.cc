@@ -242,9 +242,9 @@ void game_state::cant_cmd_any(string reason)
 // cancelling the repetition) for a repeated command that took no
 // turns. A wrapper around cancel_cmd_repeat(), its only purpose is
 // to make it clear why cancel_cmd_repeat() is being called.
-void game_state::zero_turns_taken()
+void game_state::zero_turns_taken(const player &actor)
 {
-    ASSERT(!you.turn_is_over);
+    ASSERT(!actor.turn_is_over);
     cancel_cmd_repeat();
 }
 
@@ -401,11 +401,6 @@ god_type game_state::which_god_acting() const
     return god_act.which_god;
 }
 
-void game_state::inc_god_acting(bool is_retribution)
-{
-    inc_god_acting(you.religion, is_retribution);
-}
-
 void game_state::inc_god_acting(god_type which_god, bool is_retribution)
 {
     ASSERT(which_god != GOD_NO_GOD);
@@ -422,11 +417,6 @@ void game_state::inc_god_acting(god_type which_god, bool is_retribution)
     god_act.which_god   = which_god;
     god_act.retribution = is_retribution || god_act.retribution;
     god_act.depth++;
-}
-
-void game_state::dec_god_acting()
-{
-    dec_god_acting(you.religion);
 }
 
 void game_state::dec_god_acting(god_type which_god)
@@ -676,15 +666,16 @@ string game_state::game_type_name_for(game_type _type)
     }
 }
 
-bool game_state::seed_is_known() const
+bool game_state::seed_is_known(const player &actor) const
 {
 #ifdef DGAMELAUNCH
     return player_is_dead()
 # ifdef WIZARD
-        || you.wizard
+        || actor.wizard
 # endif
         || type == GAME_TYPE_CUSTOM_SEED;
 #else
+    UNUSED(actor);
     //offline: it's visible to do what you want with it.
     return true;
 #endif

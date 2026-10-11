@@ -21,6 +21,12 @@ preserving existing rules, seeded behavior, and save compatibility.
   moves with the command pipeline.
 - Delay-driven command interruptions now pass the player and command state
   explicitly; the macro input buffer is still process-wide.
+- The unused god-acting overloads that silently read `you.religion` are gone;
+  callers already identify the god they are acting for.
+- Zero-turn cancellation now receives the player explicitly at its call sites.
+- Seed visibility receives the observing player, including on the server build.
+  The legacy `cancel_cmd_repeat` overload still reads `you` for unmigrated
+  callers; `state.cc` no longer reads the global `crawl_state`.
 - Tests often initialize a whole game to exercise a single rule. The player
   fixture explicitly cannot model a dungeon level.
 - `random.cc` held the persistent PCG streams, selected stream, and temporary

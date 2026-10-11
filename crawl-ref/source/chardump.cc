@@ -216,7 +216,7 @@ static void _sdump_header(dump_params &par)
 #endif
     par.text += " character file.\n\n";
 
-    if (you.fully_seeded && crawl_state.seed_is_known())
+    if (you.fully_seeded && crawl_state.seed_is_known(you))
         par.text += seed_description() + "\n\n";
 }
 
