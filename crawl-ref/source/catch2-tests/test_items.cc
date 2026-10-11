@@ -8,6 +8,7 @@
 #include "item-prop.h"
 #include "item-prop-enum.h"
 #include "item-status-flag-type.h"
+#include "item-stack.h"
 #include "invent.h"
 #include "inventory-quantity.h"
 #include "player-equip.h"
@@ -85,6 +86,21 @@ TEST_CASE("Item stack rules distinguish inscriptions and summoned items",
     second.inscription = "keep";
     second.flags |= ISFLAG_SUMMONED;
     REQUIRE_FALSE(items_similar(first, second));
+}
+
+TEST_CASE("Stack compatibility uses supplied identification knowledge",
+          "[inventory]")
+{
+    item_def first;
+    first.base_type = OBJ_SCROLLS;
+    first.sub_type = SCR_FEAR;
+    first.quantity = 2;
+    item_def second = first;
+
+    REQUIRE(items_stack(first, second, false, false));
+    REQUIRE(items_stack(first, second, true, true));
+    REQUIRE_FALSE(items_stack(first, second, true, false));
+    REQUIRE_FALSE(items_stack(first, second, false, true));
 }
 
 TEST_CASE( "Create item def", "[single-file]" ) {

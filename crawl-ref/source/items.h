@@ -11,6 +11,7 @@
 #include "god-type.h"
 #include "mon-inv-type.h"
 #include "item-prop.h"
+#include "item-stack.h"
 #include "tag-version.h"
 
 using std::vector;
@@ -63,9 +64,6 @@ bool move_item_to_inv(int obj, int quant_got, bool quiet = false);
 item_def* auto_assign_item_slot(item_def& item);
 void mark_items_non_pickup_at(const coord_def &pos);
 void clear_item_pickup_flags(item_def &item);
-bool is_stackable_item(const item_def &item);
-bool items_similar(const item_def &item1, const item_def &item2);
-bool items_stack(const item_def &item1, const item_def &item2);
 void get_gold(const item_def& item, int quant, bool quiet);
 
 item_def *find_floor_item(object_class_type cls, int sub_type = -1);

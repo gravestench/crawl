@@ -1,11 +1,14 @@
 #include "AppHdr.h"
 
-#include "items.h"
+#include "item-stack.h"
 
 #include <limits>
 
 #include "artefact.h"
+#include "item-def.h"
+#include "item-prop.h"
 #include "item-status-flag-type.h"
+#include "tag-version.h"
 
 bool is_stackable_item(const item_def &item)
 {
@@ -82,7 +85,8 @@ bool items_similar(const item_def &item1, const item_def &item2)
     return true;
 }
 
-bool items_stack(const item_def &item1, const item_def &item2)
+static bool _eligible_stack_pair(const item_def &item1,
+                                 const item_def &item2)
 {
     // Both items must be stackable.
     if (!is_stackable_item(item1) || !is_stackable_item(item2)
@@ -92,8 +96,25 @@ bool items_stack(const item_def &item1, const item_def &item2)
         return false;
     }
 
-    return items_similar(item1, item2)
-        // Don't leak information when checking if an "(unknown)" shop item
-        // matches an unidentified item in inventory.
-        && fully_identified(item1) == fully_identified(item2);
+    return items_similar(item1, item2);
+}
+
+bool items_stack(const item_def &item1, const item_def &item2,
+                 bool first_identified, bool second_identified)
+{
+    // Don't leak information when checking if an "(unknown)" shop item
+    // matches an unidentified item in inventory.
+    return _eligible_stack_pair(item1, item2)
+           && first_identified == second_identified;
+}
+
+bool items_stack(const item_def &item1, const item_def &item2)
+{
+    // Keep the inexpensive eligibility checks ahead of identification. The
+    // knowledge lookup can depend on the current game's item type state.
+    if (!_eligible_stack_pair(item1, item2))
+        return false;
+
+    return items_stack(item1, item2,
+                       fully_identified(item1), fully_identified(item2));
 }
