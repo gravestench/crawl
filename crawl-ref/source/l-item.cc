@@ -1034,7 +1034,7 @@ static int l_item_do_inc_quantity(lua_State *ls)
     if (in_inventory(*item))
         inc_inv_item_quantity(item->link, quantity);
     else
-        inc_mitm_item_quantity(item->index(), quantity);
+        inc_mitm_item_quantity(env, item->index(), quantity);
 
     return 0;
 }

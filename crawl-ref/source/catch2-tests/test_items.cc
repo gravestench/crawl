@@ -111,6 +111,21 @@ TEST_CASE("Inventory equipment cleanup leaves unrelated stacks alone",
     REQUIRE(owner.equip[EQ_SHIELD] == -1);
 }
 
+TEST_CASE("Floor quantity updates affect only the supplied level", "[inventory]")
+{
+    std::unique_ptr<crawl_environment> first(new crawl_environment);
+    std::unique_ptr<crawl_environment> second(new crawl_environment);
+    first->item[0].base_type = OBJ_SCROLLS;
+    first->item[0].quantity = 2;
+    second->item[0].base_type = OBJ_SCROLLS;
+    second->item[0].quantity = 7;
+
+    inc_mitm_item_quantity(*first, 0, 3);
+
+    REQUIRE(first->item[0].quantity == 5);
+    REQUIRE(second->item[0].quantity == 7);
+}
+
 TEST_CASE("Item stack rules distinguish inscriptions and summoned items",
           "[inventory]")
 {
