@@ -22,11 +22,47 @@ namespace rng
 {
     // global/persistent rng state that will be saved
     static persistent_state _global_state;
+    static selection_state _selection(_global_state);
 
-    // temporary rng state
-    static rng_type _generator = rng::GAMEPLAY;
-    // TODO: once we have c++17, convert to type optional<PcgRNG>
-    static PcgRNG * _sub_generator = nullptr;
+    selection_state::selection_state(persistent_state &owner)
+        : state(owner), selected(GAMEPLAY), temporary_stream(nullptr)
+    {
+    }
+
+    rng_type selection_state::selected_type() const
+    {
+        return selected;
+    }
+
+    rng_type selection_state::select(rng_type type)
+    {
+        const rng_type previous = selected;
+        selected = type;
+        return previous;
+    }
+
+    PcgRNG *selection_state::temporary() const
+    {
+        return temporary_stream;
+    }
+
+    PcgRNG *selection_state::set_temporary(PcgRNG *stream)
+    {
+        PcgRNG *previous = temporary_stream;
+        temporary_stream = stream;
+        return previous;
+    }
+
+    PcgRNG &selection_state::current()
+    {
+        ASSERT(selected != ASSERT_NO_RNG);
+        if (selected == SUB_GENERATOR)
+        {
+            ASSERT(temporary_stream);
+            return *temporary_stream;
+        }
+        return state.stream(selected);
+    }
 
     CrawlVector persistent_state::to_vector()
     {
@@ -81,10 +117,10 @@ namespace rng
         _global_state.load(v);
     }
 
-    generator::generator(rng_type g) : previous(_generator)
+    generator::generator(rng_type g) : previous(_selection.selected_type())
     {
         ASSERT(g != rng::SUB_GENERATOR);
-        _generator = g;
+        _selection.select(g);
     }
 
     rng_type get_branch_generator(const branch_type b)
@@ -92,29 +128,29 @@ namespace rng
         return static_cast<rng_type>(rng::LEVELGEN + static_cast<int>(b));
     }
 
-    generator::generator(branch_type b) : previous(_generator)
+    generator::generator(branch_type b) : previous(_selection.selected_type())
     {
-        _generator = get_branch_generator(b);
+        _selection.select(get_branch_generator(b));
     }
 
     generator::~generator()
     {
-        _generator = previous;
+        _selection.select(previous);
     }
 
     subgenerator::subgenerator(uint64_t seed, uint64_t sequence)
         : current(seed, sequence),
-          previous(_sub_generator),
-          previous_main(_generator)
+          previous(_selection.temporary()),
+          previous_main(_selection.selected_type())
     {
-        _generator = rng::SUB_GENERATOR;
-        _sub_generator = &current;
+        _selection.select(rng::SUB_GENERATOR);
+        _selection.set_temporary(&current);
     }
 
     subgenerator::~subgenerator()
     {
-        _generator = previous_main;
-        _sub_generator = previous;
+        _selection.select(previous_main);
+        _selection.set_temporary(previous);
     }
 
     subgenerator::subgenerator(uint64_t seed)
@@ -130,16 +166,12 @@ namespace rng
     PcgRNG *get_generator(rng_type r)
     {
         UNUSED(r);
-        ASSERT(_generator != ASSERT_NO_RNG);
-        if (_generator == SUB_GENERATOR)
-            return _sub_generator;
-        else
-            return &_global_state.stream(_generator);
+        return &_selection.current();
     }
 
     PcgRNG &current_generator()
     {
-        PcgRNG *ret = get_generator(_generator);
+        PcgRNG *ret = get_generator(_selection.selected_type());
         ASSERT(ret);
         return *ret;
     }

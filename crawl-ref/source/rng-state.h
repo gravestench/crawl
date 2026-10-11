@@ -28,4 +28,23 @@ namespace rng
         void seed_from(PcgRNG &master);
         FixedVector<PcgRNG, NUM_RNGS> streams;
     };
+
+    // Chooses a stream within one RNG owner. Scoped generator adapters still
+    // use the process-wide instance until game sessions own this object.
+    class selection_state
+    {
+    public:
+        explicit selection_state(persistent_state &state);
+
+        rng_type selected_type() const;
+        rng_type select(rng_type type);
+        PcgRNG *temporary() const;
+        PcgRNG *set_temporary(PcgRNG *stream);
+        PcgRNG &current();
+
+    private:
+        persistent_state &state;
+        rng_type selected;
+        PcgRNG *temporary_stream;
+    };
 }

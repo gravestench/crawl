@@ -80,6 +80,44 @@ TEST_CASE("Saved RNG streams resume at the next draw", "[save]")
     REQUIRE(rng::get_uint32() == next);
 }
 
+TEST_CASE("RNG selection uses its own persistent and temporary streams",
+          "[rng]")
+{
+    rng::persistent_state owner;
+    owner.seed(0x12345678);
+    rng::selection_state selection(owner);
+
+    REQUIRE(&selection.current() == &owner.stream(rng::GAMEPLAY));
+    REQUIRE(selection.select(rng::UI) == rng::GAMEPLAY);
+    REQUIRE(&selection.current() == &owner.stream(rng::UI));
+
+    rng::PcgRNG temporary(5, 7);
+    REQUIRE(selection.set_temporary(&temporary) == nullptr);
+    REQUIRE(selection.select(rng::SUB_GENERATOR) == rng::UI);
+    REQUIRE(&selection.current() == &temporary);
+
+    REQUIRE(selection.select(rng::UI) == rng::SUB_GENERATOR);
+    REQUIRE(selection.set_temporary(nullptr) == &temporary);
+    REQUIRE(&selection.current() == &owner.stream(rng::UI));
+}
+
+TEST_CASE("Scoped RNG selection restores the previous stream", "[rng]")
+{
+    restore_rng_state previous;
+    rng::seed(0x12345678);
+    rng::persistent_state independent;
+    independent.seed(0x12345678);
+
+    rng::generator ui(rng::UI);
+    REQUIRE(rng::get_uint32() == independent.stream(rng::UI).get_uint32());
+    {
+        rng::subgenerator temporary(5, 7);
+        rng::PcgRNG expected(5, 7);
+        REQUIRE(rng::get_uint32() == expected.get_uint32());
+    }
+    REQUIRE(rng::get_uint32() == independent.stream(rng::UI).get_uint32());
+}
+
 TEST_CASE("Explicit random streams match the legacy random helpers", "[rng]")
 {
     restore_rng_state previous;

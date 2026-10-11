@@ -115,6 +115,9 @@ are explicit; their versioned data must continue to load old files.
   Stream selection and temporary subgenerators still use process-wide state.
 - `rng::bounded`, `rng::range`, and `rng::flip` accept a specific stream. The
   legacy random helpers delegate to them with the currently selected stream.
+- Stream choice and temporary subgenerator selection now live in
+  `rng::selection_state`, which can use an independent persistent owner. The
+  scoped generator API delegates to the process-wide instance for now.
 - Keep serialization at the boundary, with compatibility tests for old saves.
 
 ## Baseline setup on this macOS checkout
