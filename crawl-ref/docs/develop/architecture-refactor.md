@@ -155,13 +155,13 @@ PyYAML. The default macOS Makefile path expects bundled zlib and SQLite; using
 The vendored Catch2 debugger trap needed an Apple Silicon fallback before its
 test runner could compile.
 
-## Verified on 2026-10-10
+## Verified on 2026-10-11
 
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,503
-  assertions in 83 test cases, including item and RNG serialization checks,
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,511
+  assertions in 85 test cases, including item and RNG serialization checks,
   explicit/legacy random helper parity, and independent level item iteration
   and visibility rules, independent command state queries, and turn checkpoint
   policy.
@@ -171,6 +171,9 @@ test runner could compile.
 - `test/refactor/fixtures/CompatRefactor.cs` is a fixed-seed save created
   before persistent RNG ownership changed. The compatibility script loads it
   and saves after five more turns.
+- The console `-test -seed 1` suite, old-save compatibility script, and
+  fixed-seed turn stress script passed again after the command and turn-stage
+  changes.
 
 ## Next migration gates
 
