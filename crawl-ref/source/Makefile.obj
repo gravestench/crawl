@@ -96,6 +96,7 @@ item-name.o \
 item-prop.o \
 item-stack.o \
 items.o \
+level-item-quantity.o \
 jobs.o \
 json.o \
 kills.o \

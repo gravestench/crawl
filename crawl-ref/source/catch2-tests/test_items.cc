@@ -17,6 +17,7 @@
 #include "inventory-equipment.h"
 #include "inventory-mutation.h"
 #include "inventory-quantity.h"
+#include "level-item-quantity.h"
 #include "player.h"
 #include "player-equip.h"
 #include "potion-type.h"
@@ -183,6 +184,44 @@ TEST_CASE("Floor quantity updates affect only the supplied level", "[inventory]"
 
     REQUIRE(first->item[0].quantity == 5);
     REQUIRE(second->item[0].quantity == 7);
+}
+
+TEST_CASE("Floor stack removal uses the supplied level and destroys first",
+          "[inventory]")
+{
+    std::unique_ptr<crawl_environment> level(new crawl_environment);
+    game_state commands;
+    player actor;
+    level->item[3].base_type = OBJ_SCROLLS;
+    level->item[3].quantity = 2;
+    int destroyed_slot = -1;
+
+    const bool removed = level_item_quantity::decrease(
+        *level, commands, actor, 3, 5, [&](int slot) {
+            REQUIRE(slot == 3);
+            REQUIRE(level->item[slot].quantity == 2);
+            destroyed_slot = slot;
+            level->item[slot].clear();
+        });
+
+    REQUIRE(removed);
+    REQUIRE(destroyed_slot == 3);
+    REQUIRE_FALSE(level->item[3].defined());
+}
+
+TEST_CASE("Partial floor consumption leaves destruction alone", "[inventory]")
+{
+    std::unique_ptr<crawl_environment> level(new crawl_environment);
+    game_state commands;
+    player actor;
+    level->item[3].base_type = OBJ_SCROLLS;
+    level->item[3].quantity = 5;
+
+    const bool removed = level_item_quantity::decrease(
+        *level, commands, actor, 3, 2, [](int) { FAIL("partial stack"); });
+
+    REQUIRE_FALSE(removed);
+    REQUIRE(level->item[3].quantity == 3);
 }
 
 TEST_CASE("Item stack rules distinguish inscriptions and summoned items",

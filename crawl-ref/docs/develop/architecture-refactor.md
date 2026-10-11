@@ -105,6 +105,10 @@ are explicit; their versioned data must continue to load old files.
   constructors; other callers still have legacy adapters. Their implementation
   and visible floor lookup live in `item-iterators.cc`, separate from pickup
   and inventory control flow.
+- Floor-item quantity changes now pass the level, command state, and player
+  through `level-item-quantity.cc`. The legacy `items.cc` decrement entry point
+  supplies its item destruction callback; direct tests cover partial removal
+  and the callback order when a stack disappears.
 - Item visibility in deep water now takes species explicitly. The player
   convenience method delegates to the level/species rule, and terrain code no
   longer reads `you` to make this decision.
@@ -163,8 +167,8 @@ test runner could compile.
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,527
-  assertions in 87 test cases, including item and RNG serialization checks,
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,534
+  assertions in 89 test cases, including item and RNG serialization checks,
   explicit/legacy random helper parity, and independent level item iteration
   and visibility rules, independent command state queries, and turn checkpoint
   policy.
@@ -181,6 +185,8 @@ test runner could compile.
   after turn 43, killed a small abomination, and quit at turn 80 with the
   expected weapon and HP. The seeded game suite, old-save check, and turn
   stress check also passed after inventory mutation moved behind its API.
+- Those four game checks passed again after floor-item quantity changes moved
+  behind the explicit level and command-state API.
 
 ## Next migration gates
 

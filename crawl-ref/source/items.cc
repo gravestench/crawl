@@ -47,6 +47,7 @@
 #include "item-prop.h"
 #include "item-status-flag-type.h"
 #include "item-use.h"
+#include "level-item-quantity.h"
 #include "libutil.h"
 #include "macro.h"
 #include "makeitem.h"
@@ -288,23 +289,8 @@ bool dec_inv_item_quantity(int obj, int amount)
 // Returns true if stack of items no longer exists.
 bool dec_mitm_item_quantity(int obj, int amount)
 {
-    item_def &item = env.item[obj];
-    if (amount > item.quantity)
-        amount = item.quantity; // can't use min due to type mismatch
-
-    if (item.quantity == amount)
-    {
-        destroy_item(obj);
-        // If we're repeating a command, the repetitions used up the
-        // item stack being repeated on, so stop rather than move onto
-        // the next stack.
-        crawl_state.cancel_cmd_repeat(you);
-        crawl_state.cancel_cmd_again(you);
-        return true;
-    }
-
-    item.quantity -= amount;
-    return false;
+    return level_item_quantity::decrease(env, crawl_state, you, obj, amount,
+                                         [](int slot) { destroy_item(slot); });
 }
 
 void inc_inv_item_quantity(int obj, int amount)
@@ -319,8 +305,7 @@ void inc_inv_item_quantity(int obj, int amount)
 
 void inc_mitm_item_quantity(crawl_environment &level, int obj, int amount)
 {
-    level.item[obj].quantity += amount;
-    ASSERT(level.item[obj].defined());
+    level_item_quantity::increase(level, obj, amount);
 }
 
 void init_item(int item)
