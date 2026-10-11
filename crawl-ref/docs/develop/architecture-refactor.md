@@ -14,6 +14,9 @@ preserving existing rules, seeded behavior, and save compatibility.
 - `state.h` mixes command state, startup state, UI flags, and gameplay state.
 - Tests often initialize a whole game to exercise a single rule. The player
   fixture explicitly cannot model a dungeon level.
+- `random.cc` held the persistent PCG streams, selected stream, and temporary
+  subgenerator as process-wide statics. Save tags serialize persistent streams
+  in enum order.
 
 In a text scan of the 307 top-level `.cc` files, 223 mention `you`, 158 mention
 `env`, and 145 mention `crawl_state`. These counts are a starting measure, not
@@ -50,6 +53,8 @@ a target to optimize at the expense of clear APIs.
   repetition, quiver refresh, messages, and prompts.
 - Keep stack eligibility and compatibility rules in `item-stack.cc`, away from
   pickup and menu control flow.
+- The stack API accepts explicit identification knowledge; the original
+  overload remains an adapter for callers using game-wide item knowledge.
 - Pass the display threshold into item message formatting; keep the old
   signature as an adapter while callers migrate.
 - Add tests for partial and complete stack consumption, equipped items, stack
@@ -71,6 +76,9 @@ a target to optimize at the expense of clear APIs.
 - Introduce a session composition root after the module APIs are explicit.
   Move the player, level, command state, RNG, and Lua lifetimes into it in
   separate changes.
+- Persistent RNG streams now have a `rng::persistent_state` owner. The global
+  functions remain as adapters until callers receive a stream explicitly.
+  Stream selection and temporary subgenerators still use process-wide state.
 - Keep serialization at the boundary, with compatibility tests for old saves.
 
 ## Baseline setup on this macOS checkout
@@ -86,11 +94,14 @@ test runner could compile.
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,408
-  assertions in 67 test cases.
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,424
+  assertions in 70 test cases, including item and RNG serialization checks.
 - The existing `test/stress/woken_rest.rc` sprint scenario completed 1,000
   automated turns under `util/fake_pty` after the turn-stage split.
+- `test/refactor/fixtures/CompatRefactor.cs` is a fixed-seed save created
+  before persistent RNG ownership changed. The compatibility script loads it
+  and saves after five more turns.
 
-The fixed-seed command transcripts, old-save checks, equipped-item tests, and
-inventory/level transition tests remain to be added before the first two
+Fixed-seed command transcripts for combat and level transitions, equipped-item
+tests, and inventory/level transition tests remain before the first two
 milestones are complete.

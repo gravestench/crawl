@@ -1,0 +1,14 @@
+# Continue the committed five-turn save and save again after five more turns.
+name = CompatRefactor
+species = mu
+background = ar
+restart_after_game = false
+show_more = false
+
+: function ready()
+:   if you.turns() < 10 then
+:     crawl.sendkeys(".")
+:   else
+:     crawl.sendkeys(string.char(19))
+:   end
+: end

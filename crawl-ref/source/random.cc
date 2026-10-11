@@ -1,6 +1,7 @@
 #include "AppHdr.h"
 
 #include "random.h"
+#include "rng-state.h"
 
 #include <cinttypes>
 #include <cmath>
@@ -20,43 +21,64 @@
 namespace rng
 {
     // global/persistent rng state that will be saved
-    static FixedVector<PcgRNG, rng::NUM_RNGS> _global_state;
+    static persistent_state _global_state;
 
     // temporary rng state
     static rng_type _generator = rng::GAMEPLAY;
     // TODO: once we have c++17, convert to type optional<PcgRNG>
     static PcgRNG * _sub_generator = nullptr;
 
-    CrawlVector generators_to_vector()
+    CrawlVector persistent_state::to_vector()
     {
         CrawlVector store;
-        for (PcgRNG& rng : _global_state)
+        for (PcgRNG& rng : streams)
             store.push_back(rng.to_vector()); // TODO is this ok memory-wise?
         return store;
     }
 
-    vector<uint64_t> get_states()
+    vector<uint64_t> persistent_state::draw_counts()
     {
         // this doesn't return the internal state per se, but it returns the count
         // of 32 bit integers that have been drawn, which amounts to the same thing.
         // This isn't saved, though, so it's mainly useful for debugging within a
         // session.
         vector<uint64_t> result;
-        for (PcgRNG& rng : _global_state)
+        for (PcgRNG& rng : streams)
             result.push_back(rng.get_count());
         return result;
     }
 
-    void load_generators(const CrawlVector &v)
+    void persistent_state::load(const CrawlVector &v)
     {
         // as-is, decreasing the number of rngs (e.g. by removing a branch) will
         // break save compatibility.
-        ASSERT(v.size() <= _global_state.size());
+        ASSERT(v.size() <= streams.size());
         for (int i = 0; i < v.size(); i++)
         {
             CrawlVector state = v[i].get_vector();
-            _global_state[i] = PcgRNG(state);
+            streams[i] = PcgRNG(state);
         }
+    }
+
+    PcgRNG &persistent_state::stream(rng_type type)
+    {
+        ASSERT(type >= GAMEPLAY && type < NUM_RNGS);
+        return streams[type];
+    }
+
+    CrawlVector generators_to_vector()
+    {
+        return _global_state.to_vector();
+    }
+
+    vector<uint64_t> get_states()
+    {
+        return _global_state.draw_counts();
+    }
+
+    void load_generators(const CrawlVector &v)
+    {
+        _global_state.load(v);
     }
 
     generator::generator(rng_type g) : previous(_generator)
@@ -112,7 +134,7 @@ namespace rng
         if (_generator == SUB_GENERATOR)
             return _sub_generator;
         else
-            return &_global_state[_generator];
+            return &_global_state.stream(_generator);
     }
 
     PcgRNG &current_generator()
@@ -144,11 +166,11 @@ namespace rng
         return tmp.get_uint64();
     }
 
-    static void _do_seeding(PcgRNG &master)
+    void persistent_state::seed_from(PcgRNG &master)
     {
         // TODO: don't initialize gameplay/ui rng?
         // Use the just seeded RNG to initialize the rest.
-        for (PcgRNG& rng : _global_state)
+        for (PcgRNG& rng : streams)
         {
             uint64_t init_state = master.get_uint64();
             uint64_t seq = master.get_uint64();
@@ -156,11 +178,22 @@ namespace rng
         }
     }
 
-    void seed(uint64_t seed)
+    void persistent_state::seed(uint64_t seed)
     {
         // use the default stream
         PcgRNG master = PcgRNG(seed);
-        _do_seeding(master);
+        seed_from(master);
+    }
+
+    void persistent_state::seed(uint64_t seed, uint64_t sequence)
+    {
+        PcgRNG master(seed, sequence);
+        seed_from(master);
+    }
+
+    void seed(uint64_t seed)
+    {
+        _global_state.seed(seed);
     }
 
     void seed()
@@ -169,8 +202,7 @@ namespace rng
         uint64_t seed_key[2];
         bool seeded = read_urandom((char*)(&seed_key), sizeof(seed_key));
         ASSERT(seeded);
-        PcgRNG master = PcgRNG(seed_key[0], seed_key[1]);
-        _do_seeding(master);
+        _global_state.seed(seed_key[0], seed_key[1]);
     }
 
     /**

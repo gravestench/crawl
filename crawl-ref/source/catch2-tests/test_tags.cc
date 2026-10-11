@@ -4,9 +4,81 @@
 
 #include "AppHdr.h"
 
+#include "item-def.h"
+#include "item-prop-enum.h"
 #include "map-cell.h"
 #include "random.h"
+#include "rng-state.h"
+#include "store.h"
 #include "tags.h"
+
+namespace
+{
+    struct restore_rng_state
+    {
+        restore_rng_state() : saved(rng::generators_to_vector()) { }
+        ~restore_rng_state() { rng::load_generators(saved); }
+
+        CrawlVector saved;
+    };
+}
+
+TEST_CASE("Item save data preserves an inventory stack", "[save]")
+{
+    item_def original;
+    original.base_type = OBJ_SCROLLS;
+    original.sub_type = SCR_FEAR;
+    original.quantity = 3;
+    original.rnd = 1;
+    original.pos = coord_def(-1, -1);
+    original.inscription = "keep";
+    original.props["test"] = 7;
+
+    vector<unsigned char> bytes;
+    writer output(&bytes);
+    marshallItem(output, original);
+    REQUIRE(output.succeeded());
+
+    item_def restored;
+    reader input(bytes, TAG_MINOR_VERSION);
+    unmarshallItem(input, restored);
+
+    REQUIRE(restored.base_type == original.base_type);
+    REQUIRE(restored.sub_type == original.sub_type);
+    REQUIRE(restored.quantity == original.quantity);
+    REQUIRE(restored.inscription == original.inscription);
+    REQUIRE(restored.props["test"].get_int() == 7);
+    REQUIRE_FALSE(input.valid());
+}
+
+TEST_CASE("Saved RNG streams resume at the next draw", "[save]")
+{
+    restore_rng_state previous;
+    rng::generator gameplay(rng::GAMEPLAY);
+    rng::seed(0x12345678);
+    rng::persistent_state independent;
+    independent.seed(0x12345678);
+
+    vector<unsigned char> bytes;
+    writer output(&bytes);
+    rng::generators_to_vector().write(output);
+    REQUIRE(output.succeeded());
+
+    vector<unsigned char> independent_bytes;
+    writer independent_output(&independent_bytes);
+    independent.to_vector().write(independent_output);
+    REQUIRE(independent_bytes == bytes);
+
+    const uint32_t next = rng::get_uint32();
+    REQUIRE(independent.stream(rng::GAMEPLAY).get_uint32() == next);
+    reader input(bytes, TAG_MINOR_VERSION);
+    CrawlVector restored;
+    restored.read(input);
+    REQUIRE_FALSE(input.valid());
+
+    rng::load_generators(restored);
+    REQUIRE(rng::get_uint32() == next);
+}
 
 TEST_CASE( "Vehumet gifts can be decoded", "[single-file]" ) {
 
