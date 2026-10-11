@@ -12,6 +12,9 @@ preserving existing rules, seeded behavior, and save compatibility.
 - `items.cc` combines item storage, inventory rules, pickup UI, identification,
   and messages.
 - `state.h` mixes command state, startup state, UI flags, and gameplay state.
+- Two `game_state` queries (`is_replaying_keys` and `game_type_qualifier`)
+  looked at the global `crawl_state` instead of the instance they were called
+  on. They now read their own fields; tests construct independent instances.
 - Tests often initialize a whole game to exercise a single rule. The player
   fixture explicitly cannot model a dungeon level.
 - `random.cc` held the persistent PCG streams, selected stream, and temporary
@@ -121,10 +124,10 @@ test runner could compile.
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,445
-  assertions in 72 test cases, including item and RNG serialization checks,
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,453
+  assertions in 74 test cases, including item and RNG serialization checks,
   explicit/legacy random helper parity, and independent level item iteration
-  and visibility rules.
+  and visibility rules, and independent command state queries.
 - The existing `test/stress/woken_rest.rc` sprint scenario completed 1,000
   automated turns under `util/fake_pty` after the turn-stage split.
 - `test/refactor/fixtures/CompatRefactor.cs` is a fixed-seed save created

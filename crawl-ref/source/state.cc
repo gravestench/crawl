@@ -99,8 +99,7 @@ void game_state::reset_game()
 
 bool game_state::is_replaying_keys() const
 {
-    return crawl_state.doing_prev_cmd_again
-           || crawl_state.is_repeating_cmd();
+    return doing_prev_cmd_again || is_repeating_cmd();
 }
 
 bool game_state::is_repeating_cmd() const
@@ -650,11 +649,11 @@ string game_state::game_type_qualifier() const
 {
     if (type == GAME_TYPE_CUSTOM_SEED)
         return "-seeded";
-    if (crawl_state.game_is_sprint())
+    if (game_is_sprint())
         return "-sprint";
-    if (crawl_state.game_is_tutorial())
+    if (game_is_tutorial())
         return "-tutorial";
-    if (crawl_state.game_is_hints())
+    if (game_is_hints())
         return "-hints";
     return "";
 }
