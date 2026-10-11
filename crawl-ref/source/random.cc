@@ -17,6 +17,7 @@
 #include "state.h"
 #include "store.h"
 #include "options.h"
+#include "player.h"
 
 namespace rng
 {

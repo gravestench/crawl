@@ -5,16 +5,19 @@
 
 #pragma once
 
+#include <deque>
 #include <vector>
 
 #include "activity-interrupt-type.h"
+#include "bitary.h"
 #include "command-type.h"
 #include "disable-type.h"
 #include "end.h"
 #include "game-exit-type.h"
 #include "game-type.h"
-#include "player.h"
+#include "god-type.h"
 
+class player;
 class monster;
 class mon_acting;
 class targeter;
@@ -261,11 +264,6 @@ extern game_state crawl_state;
 class god_acting
 {
 public:
-    god_acting(bool is_retribution = false)
-        : god(you.religion)
-    {
-        crawl_state.inc_god_acting(god, is_retribution);
-    }
     god_acting(god_type who, bool is_retribution = false)
         : god(who)
     {

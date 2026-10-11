@@ -2121,7 +2121,7 @@ bool do_god_gift(bool forced)
 {
     ASSERT(!you_worship(GOD_NO_GOD));
 
-    god_acting gdact;
+    god_acting gdact(you.religion);
 
 #if defined(DEBUG_DIAGNOSTICS) || defined(DEBUG_GIFTS)
     int old_num_current_gifts = you.num_current_gifts[you.religion];

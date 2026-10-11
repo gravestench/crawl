@@ -2,6 +2,7 @@
 
 #include "AppHdr.h"
 
+#include "player.h"
 #include "state.h"
 
 TEST_CASE("Command replay queries use their own game state", "[state]")

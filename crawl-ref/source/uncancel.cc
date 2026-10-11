@@ -13,6 +13,7 @@
 #include "decks.h"
 #include "god-abil.h"
 #include "libutil.h"
+#include "player.h"
 #include "state.h"
 #include "tag-version.h"
 #include "unwind.h"

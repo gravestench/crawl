@@ -27,6 +27,9 @@ preserving existing rules, seeded behavior, and save compatibility.
 - Seed visibility receives the observing player, including on the server build.
   The legacy `cancel_cmd_repeat` overload still reads `you` for unmigrated
   callers; `state.cc` no longer reads the global `crawl_state`.
+- `state.h` now forward declares the player and includes its own enum and bit
+  vector dependencies, reducing its reliance on the full player header. God
+  acting scopes now receive their god explicitly at all call sites.
 - Tests often initialize a whole game to exercise a single rule. The player
   fixture explicitly cannot model a dungeon level.
 - `random.cc` held the persistent PCG streams, selected stream, and temporary

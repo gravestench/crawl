@@ -2,6 +2,7 @@
 
 #include "coord.h"
 
+#include "player.h"
 #include "state.h"
 #include "viewgeom.h"
 

@@ -7,6 +7,8 @@
 
 #include "crash.h"
 
+#include "player.h"
+
 #if defined(UNIX)
 #include <unistd.h>
 #include <sys/param.h>

@@ -179,7 +179,7 @@ struct dislike_response
         if (valid_victim && !valid_victim(victim))
             return;
 
-        god_acting gdact;
+        god_acting gdact(you.religion);
 
         // If the player didn't have a way to know they were going to trigger
         // the conduct, and the god cares, print a message & bail.
@@ -518,7 +518,7 @@ struct like_response
         if (victim && !_god_likes_killing(*victim))
             return;
 
-        god_acting gdact;
+        god_acting gdact(you.religion);
 
         if (message)
             simple_god_message(message);
