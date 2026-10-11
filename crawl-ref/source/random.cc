@@ -225,10 +225,19 @@ namespace rng
 // TODO: probably this could all be in the rng namespace
 
 // [low, high]
+int rng::range(PcgRNG &stream, int low, int high)
+{
+    ASSERT(low <= high);
+    return low + bounded(stream, high - low + 1);
+}
+
+// [low, high]
 int random_range(int low, int high)
 {
     ASSERT(low <= high);
-    return low + random2(high - low + 1);
+    if (high - low + 1 <= 1)
+        return low;
+    return rng::range(rng::current_generator(), low, high);
 }
 
 // [low, high]
@@ -240,12 +249,21 @@ int random_range(int low, int high, int nrolls)
 }
 
 // [0, max)
+int rng::bounded(PcgRNG &stream, int max)
+{
+    if (max <= 1)
+        return 0;
+
+    return stream.get_bounded_uint32(max);
+}
+
+// [0, max)
 int random2(int max)
 {
     if (max <= 1)
         return 0;
 
-    return rng::current_generator().get_bounded_uint32(max);
+    return rng::bounded(rng::current_generator(), max);
 }
 
 // [0, max), separate RNG state
@@ -257,9 +275,15 @@ int ui_random(int max)
 }
 
 // [0, 1]
+bool rng::flip(PcgRNG &stream)
+{
+    return static_cast<bool>(bounded(stream, 2));
+}
+
+// [0, 1]
 bool coinflip()
 {
-    return static_cast<bool>(random2(2));
+    return rng::flip(rng::current_generator());
 }
 
 // Returns random2(x) if random_factor is true, otherwise the mean.

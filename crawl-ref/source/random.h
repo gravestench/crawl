@@ -81,6 +81,13 @@ int maybe_random2(int x, bool random_factor);
 int maybe_random_div(int nom, int denom, bool random_factor);
 int maybe_roll_dice(int num, int size, bool random);
 int random_range(int low, int high);
+
+namespace rng
+{
+    int bounded(PcgRNG &stream, int max);
+    int range(PcgRNG &stream, int low, int high);
+    bool flip(PcgRNG &stream);
+}
 int random_range(int low, int high, int nrolls);
 double random_real();
 

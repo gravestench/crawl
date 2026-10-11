@@ -80,6 +80,26 @@ TEST_CASE("Saved RNG streams resume at the next draw", "[save]")
     REQUIRE(rng::get_uint32() == next);
 }
 
+TEST_CASE("Explicit random streams match the legacy random helpers", "[rng]")
+{
+    restore_rng_state previous;
+    rng::generator gameplay(rng::GAMEPLAY);
+    rng::seed(0x12345678);
+    rng::persistent_state independent;
+    independent.seed(0x12345678);
+    auto &stream = independent.stream(rng::GAMEPLAY);
+
+    const uint64_t count = stream.get_count();
+    REQUIRE(rng::bounded(stream, 0) == 0);
+    REQUIRE(rng::bounded(stream, 1) == 0);
+    REQUIRE(rng::range(stream, 4, 4) == 4);
+    REQUIRE(stream.get_count() == count);
+
+    REQUIRE(random2(100) == rng::bounded(stream, 100));
+    REQUIRE(random_range(3, 9) == rng::range(stream, 3, 9));
+    REQUIRE(coinflip() == rng::flip(stream));
+}
+
 TEST_CASE( "Vehumet gifts can be decoded", "[single-file]" ) {
 
     SECTION ("spells stored as bytes can be read") {

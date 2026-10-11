@@ -79,6 +79,8 @@ a target to optimize at the expense of clear APIs.
 - Persistent RNG streams now have a `rng::persistent_state` owner. The global
   functions remain as adapters until callers receive a stream explicitly.
   Stream selection and temporary subgenerators still use process-wide state.
+- `rng::bounded`, `rng::range`, and `rng::flip` accept a specific stream. The
+  legacy random helpers delegate to them with the currently selected stream.
 - Keep serialization at the boundary, with compatibility tests for old saves.
 
 ## Baseline setup on this macOS checkout
@@ -94,8 +96,9 @@ test runner could compile.
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,424
-  assertions in 70 test cases, including item and RNG serialization checks.
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,431
+  assertions in 71 test cases, including item and RNG serialization checks
+  and parity between explicit and legacy random helpers.
 - The existing `test/stress/woken_rest.rc` sprint scenario completed 1,000
   automated turns under `util/fake_pty` after the turn-stage split.
 - `test/refactor/fixtures/CompatRefactor.cs` is a fixed-seed save created
