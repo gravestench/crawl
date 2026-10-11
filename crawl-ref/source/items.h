@@ -91,7 +91,6 @@ string item_message(vector<const item_def *> const &items,
                     int summary_minimum);
 void item_check();
 void identify_item(item_def& item);
-void request_autopickup(bool do_pickup = true);
 void id_floor_items();
 
 bool player_on_single_stack();
@@ -143,7 +142,6 @@ bool origin_is_acquirement(const item_def& item,
 bool item_needs_autopickup(const item_def &, bool ignore_force = false);
 bool can_autopickup();
 
-bool need_to_autopickup();
 void autopickup(bool forced = false);
 
 void set_item_autopickup(const item_def &item, autopickup_level_type ap);
@@ -151,8 +149,6 @@ int item_autopickup_level(const item_def &item);
 
 int find_free_slot(const item_def &i);
 
-bool need_to_autoinscribe();
-void request_autoinscribe(bool do_inscribe = true);
 void autoinscribe();
 
 bool item_is_equipped(const item_def &item, bool quiver_too = false);

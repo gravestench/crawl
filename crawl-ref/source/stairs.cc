@@ -1037,7 +1037,7 @@ void floor_transition(dungeon_feature_type how,
         maybe_update_stashes();
 
     autotoggle_autopickup(false);
-    request_autopickup();
+    crawl_state.request_autopickup();
 }
 
 /**

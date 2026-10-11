@@ -70,3 +70,23 @@ TEST_CASE("Rest turn accounting belongs to the game state", "[state]")
     first.reset_game();
     REQUIRE_FALSE(first.place_stat_counts_as_rest(false));
 }
+
+TEST_CASE("Pickup and inscription requests belong to one game", "[state]")
+{
+    game_state first;
+    game_state second;
+    REQUIRE_FALSE(first.needs_autopickup());
+    REQUIRE_FALSE(first.needs_autoinscribe());
+
+    first.request_autopickup();
+    first.request_autoinscribe();
+    REQUIRE(first.needs_autopickup());
+    REQUIRE(first.needs_autoinscribe());
+    REQUIRE_FALSE(second.needs_autopickup());
+    REQUIRE_FALSE(second.needs_autoinscribe());
+
+    first.request_autopickup(false);
+    REQUIRE_FALSE(first.needs_autopickup());
+    first.reset_game();
+    REQUIRE_FALSE(first.needs_autoinscribe());
+}

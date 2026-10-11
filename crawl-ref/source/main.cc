@@ -1100,7 +1100,7 @@ static void _input()
     if (!you_are_delayed())
         set_more_autoclear(false);
 
-    if (need_to_autopickup())
+    if (crawl_state.needs_autopickup())
     {
         autopickup();
         if (you.turn_is_over)
@@ -1110,7 +1110,7 @@ static void _input()
         }
     }
 
-    if (need_to_autoinscribe())
+    if (crawl_state.needs_autoinscribe())
         autoinscribe();
 
     if (you_are_delayed()
@@ -1253,7 +1253,7 @@ static void _input()
             return;
     }
 
-    if (need_to_autoinscribe())
+    if (crawl_state.needs_autoinscribe())
         autoinscribe();
 
 #ifdef WIZARD

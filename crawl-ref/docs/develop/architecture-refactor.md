@@ -77,6 +77,8 @@ are explicit; their versioned data must continue to load old files.
   repetition, quiver refresh, messages, and prompts.
 - Equipment slot cleanup now takes the player explicitly and invokes the
   unwield callback before clearing the weapon slot.
+- Pending pickup and inscription requests now belong to `game_state` and reset
+  with a game; their old `items.cc` globals and query wrappers are gone.
 - Keep stack eligibility and compatibility rules in `item-stack.cc`, away from
   pickup and menu control flow.
 - The stack API accepts explicit identification knowledge; the original

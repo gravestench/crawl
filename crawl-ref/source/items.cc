@@ -92,9 +92,6 @@ static void _multidrop(vector<SelItem> tmp_items);
 static bool _merge_items_into_inv(item_def &it, int quant_got,
                                   int &inv_slot, bool quiet);
 
-static bool will_autopickup   = false;
-static bool will_autoinscribe = false;
-
 static inline string _autopickup_item_name(const item_def &item)
 {
     return userdef_annotate_item(STASH_LUA_SEARCH_ANNOTATE, &item)
@@ -627,16 +624,6 @@ vector<const item_def*> const_item_list_on_square(int obj)
     return items;
 }
 
-
-bool need_to_autopickup()
-{
-    return will_autopickup;
-}
-
-void request_autopickup(bool do_pickup)
-{
-    will_autopickup = do_pickup;
-}
 
 bool item_is_branded(const item_def& item)
 {
@@ -2645,22 +2632,12 @@ static void _autoinscribe_inventory()
             _autoinscribe_item(item);
 }
 
-bool need_to_autoinscribe()
-{
-    return will_autoinscribe;
-}
-
-void request_autoinscribe(bool do_inscribe)
-{
-    will_autoinscribe = do_inscribe;
-}
-
 void autoinscribe()
 {
     _autoinscribe_floor_items();
     _autoinscribe_inventory();
 
-    will_autoinscribe = false;
+    crawl_state.request_autoinscribe(false);
 }
 
 /**
@@ -3025,7 +3002,7 @@ void autopickup(bool forced)
 {
     _autoinscribe_floor_items();
 
-    will_autopickup = false;
+    crawl_state.request_autopickup(false);
     // pick up things when forced (by input ;;), or when you feel save
     if (forced || can_autopickup())
         _do_autopickup();

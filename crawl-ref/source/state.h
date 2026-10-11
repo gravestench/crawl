@@ -158,6 +158,8 @@ protected:
     void reset_cmd_again();
 
     bool previous_turn_was_rest;
+    bool pending_autopickup;
+    bool pending_autoinscribe;
 
     god_act_state         god_act;
     vector<god_act_state> god_act_stack;
@@ -180,6 +182,11 @@ public:
 
     // Count the first turn after a rest delay as resting, then clear the flag.
     bool place_stat_counts_as_rest(bool resting_now);
+
+    bool needs_autopickup() const;
+    void request_autopickup(bool requested = true);
+    bool needs_autoinscribe() const;
+    void request_autoinscribe(bool requested = true);
 
     void cancel_cmd_repeat(string reason = "", bool force=false);
     void cancel_cmd_repeat(const player &actor, string reason = "",

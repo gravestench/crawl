@@ -67,6 +67,7 @@ game_state::game_state()
       nonempty_buffer_flush_errors(false),
       last_builder_error_fatal(false),
       previous_turn_was_rest(false),
+      pending_autopickup(false), pending_autoinscribe(false),
       mon_act(nullptr)
 {
     reset_cmd_repeat();
@@ -86,6 +87,8 @@ game_state::game_state()
 void game_state::reset_game()
 {
     previous_turn_was_rest = false;
+    pending_autopickup = false;
+    pending_autoinscribe = false;
     game_started = false;
     // need_save is unset by death, but not by saving with restart_after_save.
     need_save = false;
@@ -114,6 +117,26 @@ bool game_state::place_stat_counts_as_rest(bool resting_now)
     const bool counts_as_rest = previous_turn_was_rest || resting_now;
     previous_turn_was_rest = resting_now;
     return counts_as_rest;
+}
+
+bool game_state::needs_autopickup() const
+{
+    return pending_autopickup;
+}
+
+void game_state::request_autopickup(bool requested)
+{
+    pending_autopickup = requested;
+}
+
+bool game_state::needs_autoinscribe() const
+{
+    return pending_autoinscribe;
+}
+
+void game_state::request_autoinscribe(bool requested)
+{
+    pending_autoinscribe = requested;
 }
 
 void game_state::cancel_cmd_repeat(string reason, bool force)

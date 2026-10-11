@@ -30,6 +30,7 @@
 #include "religion.h"
 #include "shopping.h"
 #include "skills.h"
+#include "state.h"
 #include "stringutil.h"
 #include "tag-version.h"
 #include "terrain.h"
@@ -971,7 +972,7 @@ void set_ident_flags(item_def &item, iflags_t flags)
     if ((item.flags & flags) != flags)
     {
         item.flags |= flags;
-        request_autoinscribe();
+        crawl_state.request_autoinscribe();
 
         if (in_inventory(item))
         {

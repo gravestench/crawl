@@ -576,7 +576,7 @@ static void _setup_generic(const newgame_def& ng,
     init_training();
 
     // Apply autoinscribe rules to inventory.
-    request_autoinscribe();
+    crawl_state.request_autoinscribe();
     autoinscribe();
 
     // We calculate hp and mp here; all relevant factors should be

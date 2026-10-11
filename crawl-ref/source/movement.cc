@@ -1162,7 +1162,7 @@ void move_player_action(coord_def move)
 
         move.reset();
         you.turn_is_over = true;
-        request_autopickup();
+        crawl_state.request_autopickup();
     }
 
     // BCR - Easy doors single move

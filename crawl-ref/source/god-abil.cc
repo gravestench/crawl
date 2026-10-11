@@ -5708,7 +5708,7 @@ bool wu_jian_do_wall_jump(coord_def targ)
 
     // need to set this here in case serpent's lash isn't active
     you.turn_is_over = true;
-    request_autopickup();
+    crawl_state.request_autopickup();
     wu_jian_post_move_effects(true, initial_position);
 
     return true;
