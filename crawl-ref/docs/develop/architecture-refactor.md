@@ -109,6 +109,9 @@ are explicit; their versioned data must continue to load old files.
 - The checkpoint decision now reads its own `game_state` and receives the
   completed turn and delay status explicitly; save execution remains in the
   same turn stage.
+- Turn bookkeeping now receives the player, level, and game state at its
+  entry point. Delay inspection and the save calls still use their existing
+  global interfaces.
 - Make turn and command state explicit at those boundaries. Characterize free
   actions, repeat/again, Lua callbacks, monster reactions, and save triggers.
 

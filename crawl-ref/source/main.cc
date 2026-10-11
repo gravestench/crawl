@@ -966,62 +966,62 @@ struct disable_check
     bool was_disabled;
 };
 
-static void _update_place_stats()
+static void _update_place_stats(player &actor, game_state &session)
 {
-    if (you.num_turns == -1)
+    if (actor.num_turns == -1)
         return;
 
     // not strictly stored as part of PlaceInfo, but this is a natural place
     // to do this update.
-    CrawlHashTable &time_tracking = you.props[TIME_PER_LEVEL_KEY].get_table();
+    CrawlHashTable &time_tracking = actor.props[TIME_PER_LEVEL_KEY].get_table();
     int &cur_value = time_tracking[level_id::current().describe()].get_int();
-    cur_value += you.time_taken;
+    cur_value += actor.time_taken;
 
     PlaceInfo  delta;
 
     delta.turns_total++;
-    delta.elapsed_total += you.time_taken;
+    delta.elapsed_total += actor.time_taken;
 
-    switch (you.running)
+    switch (actor.running)
     {
     case RMODE_INTERLEVEL:
         delta.turns_interlevel++;
-        delta.elapsed_interlevel += you.time_taken;
+        delta.elapsed_interlevel += actor.time_taken;
         break;
 
     case RMODE_EXPLORE_GREEDY:
     case RMODE_EXPLORE:
         delta.turns_explore++;
-        delta.elapsed_explore += you.time_taken;
+        delta.elapsed_explore += actor.time_taken;
         break;
 
     case RMODE_TRAVEL:
         delta.turns_travel++;
-        delta.elapsed_travel += you.time_taken;
+        delta.elapsed_travel += actor.time_taken;
         break;
 
     default:
         // The interrupted turn following a rest delay still counts as rest.
         const bool resting_now = you_are_delayed()
                                  && current_delay()->is_resting();
-        if (crawl_state.place_stat_counts_as_rest(resting_now))
+        if (session.place_stat_counts_as_rest(resting_now))
         {
             delta.turns_resting++;
-            delta.elapsed_resting += you.time_taken;
+            delta.elapsed_resting += actor.time_taken;
         }
         else
         {
             delta.turns_other++;
-            delta.elapsed_other += you.time_taken;
+            delta.elapsed_other += actor.time_taken;
         }
 
         break;
     }
 
-    you.global_info += delta;
-    you.global_info.assert_validity();
+    actor.global_info += delta;
+    actor.global_info.assert_validity();
 
-    PlaceInfo& curr_PlaceInfo = you.get_place_info();
+    PlaceInfo& curr_PlaceInfo = actor.get_place_info();
     curr_PlaceInfo += delta;
     curr_PlaceInfo.assert_validity();
 }
@@ -2622,26 +2622,27 @@ static void _present_world_reaction()
 #endif
 }
 
-static void _finish_world_reaction()
+static void _finish_world_reaction(player &actor, crawl_environment &level,
+                                   game_state &session)
 {
-    if (you.num_turns != -1)
+    if (actor.num_turns != -1)
     {
-        if (you.num_turns < INT_MAX)
-            you.num_turns++;
+        if (actor.num_turns < INT_MAX)
+            actor.num_turns++;
 
-        _update_place_stats();
+        _update_place_stats(actor, session);
 
-        if (env.turns_on_level < INT_MAX)
-            env.turns_on_level++;
+        if (level.turns_on_level < INT_MAX)
+            level.turns_on_level++;
         record_turn_timestamp();
         update_turn_count();
         msgwin_new_turn();
-        crawl_state.lua_calls_no_turn = 0;
-        if (crawl_state.should_checkpoint_after_turn(you.num_turns,
-                                                    you_are_delayed()))
+        session.lua_calls_no_turn = 0;
+        if (session.should_checkpoint_after_turn(actor.num_turns,
+                                                 you_are_delayed()))
         {
             // Resting makes the saving quite random, but meh.
-            crawl_state.save_after_turn = false;
+            session.save_after_turn = false;
             save_level(level_id::current());
             save_game(false);
         }
@@ -2651,8 +2652,8 @@ static void _finish_world_reaction()
     // `los_noise_last_turn` is the value for display -- it needs to persist
     // for any calls to print_stats during the next turn. Meanwhile, reset
     // the loudest noise tracking for the next world_reacts cycle.
-    you.los_noise_last_turn = you.los_noise_level;
-    you.los_noise_level = 0;
+    actor.los_noise_last_turn = actor.los_noise_level;
+    actor.los_noise_level = 0;
 }
 
 void world_reacts()
@@ -2660,7 +2661,7 @@ void world_reacts()
     _prepare_world_reaction();
     _advance_world();
     _present_world_reaction();
-    _finish_world_reaction();
+    _finish_world_reaction(you, env, crawl_state);
 }
 
 static command_type _get_next_cmd()
