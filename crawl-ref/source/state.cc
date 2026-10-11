@@ -194,14 +194,20 @@ bool game_state::can_cancel_cmd_repeat(const player &actor, bool force) const
 
 void game_state::cancel_cmd_again(string reason, bool force)
 {
+    cancel_cmd_again(you, reason, force);
+}
+
+void game_state::cancel_cmd_again(const player &actor, string reason,
+                                  bool force)
+{
     if (!force && !doing_prev_cmd_again)
         return;
 
     if (is_replaying_keys() || cmd_repeat_start)
-        flush_input_buffer(FLUSH_KEY_REPLAY_CANCEL);
+        flush_input_buffer(*this, actor, FLUSH_KEY_REPLAY_CANCEL);
 
     if (is_processing_macro())
-        flush_input_buffer(FLUSH_ABORT_MACRO);
+        flush_input_buffer(*this, actor, FLUSH_ABORT_MACRO);
 
     reset_cmd_again();
 

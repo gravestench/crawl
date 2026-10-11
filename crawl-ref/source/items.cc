@@ -293,7 +293,7 @@ bool dec_inv_item_quantity(int obj, int amount)
         // item stack being repeated on, so stop rather than move onto
         // the next stack.
         crawl_state.cancel_cmd_repeat(you);
-        crawl_state.cancel_cmd_again();
+        crawl_state.cancel_cmd_again(you);
         quiver::on_actions_changed();
     }
 
@@ -316,7 +316,7 @@ bool dec_mitm_item_quantity(int obj, int amount)
         // item stack being repeated on, so stop rather than move onto
         // the next stack.
         crawl_state.cancel_cmd_repeat(you);
-        crawl_state.cancel_cmd_again();
+        crawl_state.cancel_cmd_again(you);
         return true;
     }
 

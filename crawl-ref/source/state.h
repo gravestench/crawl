@@ -197,6 +197,8 @@ public:
     void cancel_cmd_repeat(const player &actor, string reason = "",
                            bool force=false);
     void cancel_cmd_again(string reason = "", bool force=false);
+    void cancel_cmd_again(const player &actor, string reason = "",
+                          bool force=false);
     void cancel_cmd_all(string reason = "");
 
     void cant_cmd_repeat(string reason = "");

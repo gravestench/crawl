@@ -18,6 +18,8 @@ preserving existing rules, seeded behavior, and save compatibility.
 - Command repeat cancellation now accepts an explicit player for its wizard
   exception policy. Macro buffer flushing now receives that state and player
   for replay checks; the key buffer itself still has process-wide storage.
+- Previous-command replay cancellation also accepts the player and can clear
+  an independent `game_state` without consulting the global replay state.
 - Delay-driven command interruptions now pass the player and command state
   explicitly; the macro input buffer is still process-wide.
 - The unused god-acting overloads that silently read `you.religion` are gone;

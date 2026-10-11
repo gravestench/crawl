@@ -59,6 +59,18 @@ TEST_CASE("Wizard repeat policy checks the supplied player", "[state]")
     REQUIRE(session.can_cancel_cmd_repeat(actor, true));
 }
 
+TEST_CASE("Previous-command replay cancels on its own session", "[state]")
+{
+    game_state session;
+    player actor;
+    session.doing_prev_cmd_again = true;
+
+    session.cancel_cmd_again(actor);
+
+    REQUIRE_FALSE(session.doing_prev_cmd_again);
+    REQUIRE(session.prev_cmd == CMD_NO_CMD);
+}
+
 TEST_CASE("Rest turn accounting belongs to the game state", "[state]")
 {
     game_state first;
