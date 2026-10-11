@@ -14,7 +14,9 @@
 #include "item-status-flag-type.h"
 #include "item-stack.h"
 #include "invent.h"
+#include "inventory-equipment.h"
 #include "inventory-quantity.h"
+#include "player.h"
 #include "player-equip.h"
 #include "potion-type.h"
 
@@ -68,6 +70,45 @@ TEST_CASE("Inventory consumption decision survives equipment callbacks",
 
     REQUIRE(item.base_type == OBJ_UNASSIGNED);
     REQUIRE(item.quantity == 0);
+}
+
+TEST_CASE("Inventory equipment cleanup keeps the weapon callback order",
+          "[inventory]")
+{
+    player owner;
+    owner.equip[EQ_WEAPON] = 7;
+    owner.equip[EQ_CLOAK] = 7;
+    owner.equip[EQ_HELMET] = 8;
+
+    inventory_equipment::mark_weapon_changed(owner, 7);
+    REQUIRE(owner.wield_change);
+
+    int unwield_calls = 0;
+    inventory_equipment::remove_stack(owner, 7, [&] {
+        ++unwield_calls;
+        REQUIRE(owner.equip[EQ_WEAPON] == 7);
+        REQUIRE(owner.equip[EQ_CLOAK] == 7);
+    });
+
+    REQUIRE(unwield_calls == 1);
+    REQUIRE(owner.equip[EQ_WEAPON] == -1);
+    REQUIRE(owner.equip[EQ_CLOAK] == -1);
+    REQUIRE(owner.equip[EQ_HELMET] == 8);
+}
+
+TEST_CASE("Inventory equipment cleanup leaves unrelated stacks alone",
+          "[inventory]")
+{
+    player owner;
+    owner.equip[EQ_WEAPON] = 3;
+    owner.equip[EQ_SHIELD] = 5;
+
+    inventory_equipment::mark_weapon_changed(owner, 5);
+    REQUIRE_FALSE(owner.wield_change);
+
+    inventory_equipment::remove_stack(owner, 5, [] { FAIL("not wielded"); });
+    REQUIRE(owner.equip[EQ_WEAPON] == 3);
+    REQUIRE(owner.equip[EQ_SHIELD] == -1);
 }
 
 TEST_CASE("Item stack rules distinguish inscriptions and summoned items",

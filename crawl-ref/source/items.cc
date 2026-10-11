@@ -42,6 +42,7 @@
 #include "hints.h"
 #include "hiscores.h"
 #include "invent.h"
+#include "inventory-equipment.h"
 #include "inventory-quantity.h"
 #include "item-name.h"
 #include "item-prop.h"
@@ -275,23 +276,14 @@ bool dec_inv_item_quantity(int obj, int amount)
     const bool stack_removed =
         plan == inventory_quantity::decrease_plan::remove_stack;
 
-    if (you.equip[EQ_WEAPON] == obj)
-        you.wield_change = true;
+    inventory_equipment::mark_weapon_changed(you, obj);
 
     if (stack_removed)
     {
-        for (int i = EQ_FIRST_EQUIP; i < NUM_EQUIP; i++)
-        {
-            if (you.equip[i] == obj)
-            {
-                if (i == EQ_WEAPON)
-                {
-                    unwield_item();
-                    canned_msg(MSG_EMPTY_HANDED_NOW);
-                }
-                you.equip[i] = -1;
-            }
-        }
+        inventory_equipment::remove_stack(you, obj, [] {
+            unwield_item();
+            canned_msg(MSG_EMPTY_HANDED_NOW);
+        });
 
         item_skills(you.inv[obj], you.skills_to_hide);
     }
@@ -337,8 +329,7 @@ bool dec_mitm_item_quantity(int obj, int amount)
 
 void inc_inv_item_quantity(int obj, int amount)
 {
-    if (you.equip[EQ_WEAPON] == obj)
-        you.wield_change = true;
+    inventory_equipment::mark_weapon_changed(you, obj);
 
     inventory_quantity::increase(you.inv[obj], amount);
     if (you.inv[obj].quantity == amount) // not currently possible?
