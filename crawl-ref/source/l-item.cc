@@ -20,6 +20,7 @@
 #include "item-prop.h"
 #include "item-status-flag-type.h"
 #include "items.h"
+#include "level-item-quantity.h"
 #include "item-use.h"
 #include "libutil.h"
 #include "mapdef.h" // item_spec
@@ -1034,7 +1035,7 @@ static int l_item_do_inc_quantity(lua_State *ls)
     if (in_inventory(*item))
         inc_inv_item_quantity(item->link, quantity);
     else
-        inc_mitm_item_quantity(env, item->index(), quantity);
+        level_item_quantity::increase(env, item->index(), quantity);
 
     return 0;
 }

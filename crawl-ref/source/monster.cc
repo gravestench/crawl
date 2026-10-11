@@ -39,6 +39,7 @@
 #include "item-prop.h"
 #include "item-status-flag-type.h"
 #include "items.h"
+#include "level-item-quantity.h"
 #include "libutil.h"
 #include "makeitem.h"
 #include "message.h"
@@ -1128,7 +1129,7 @@ bool monster::pickup(item_def &item, mon_inv_type slot, bool msg)
 
             if (msg)
                 pickup_message(item);
-            inc_mitm_item_quantity(env, inv[slot], item.quantity);
+            level_item_quantity::increase(env, inv[slot], item.quantity);
             destroy_item(item.index());
             if (msg)
                 equip_message(item);

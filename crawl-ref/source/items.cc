@@ -303,11 +303,6 @@ void inc_inv_item_quantity(int obj, int amount)
     });
 }
 
-void inc_mitm_item_quantity(crawl_environment &level, int obj, int amount)
-{
-    level_item_quantity::increase(level, obj, amount);
-}
-
 void init_item(int item)
 {
     if (item == NON_ITEM)
@@ -2017,7 +2012,7 @@ bool move_item_to_grid(int *const obj, const coord_def& p, bool silent)
             {
                 // Add quantity to item already here, and dispose
                 // of obj, while returning the found item. -- bwr
-                inc_mitm_item_quantity(env, si->index(), item.quantity);
+                level_item_quantity::increase(env, si->index(), item.quantity);
                 destroy_item(ob);
                 ob = si->index();
                 _gozag_move_gold_to_top(p);
@@ -2132,7 +2127,7 @@ bool copy_item_to_grid(item_def &item, const coord_def& p,
             if (items_stack(item, *si))
             {
                 item_def copy = item;
-                inc_mitm_item_quantity(env, si->index(), quant_drop);
+                level_item_quantity::increase(env, si->index(), quant_drop);
 
                 if (mark_dropped)
                 {

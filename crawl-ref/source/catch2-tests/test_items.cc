@@ -197,7 +197,7 @@ TEST_CASE("Floor quantity updates affect only the supplied level", "[inventory]"
     second->item[0].base_type = OBJ_SCROLLS;
     second->item[0].quantity = 7;
 
-    inc_mitm_item_quantity(*first, 0, 3);
+    level_item_quantity::increase(*first, 0, 3);
 
     REQUIRE(first->item[0].quantity == 5);
     REQUIRE(second->item[0].quantity == 7);

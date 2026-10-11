@@ -108,7 +108,8 @@ are explicit; their versioned data must continue to load old files.
 - Floor-item quantity changes now pass the level, command state, and player
   through `level-item-quantity.cc`. The legacy `items.cc` decrement entry point
   supplies its item destruction callback; direct tests cover partial removal
-  and the callback order when a stack disappears.
+  and the callback order when a stack disappears. Floor-item increases now
+  call that module directly; the old `items.h` increment adapter is gone.
 - Item visibility in deep water now takes species explicitly. The player
   convenience method delegates to the level/species rule, and terrain code no
   longer reads `you` to make this decision.

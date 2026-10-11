@@ -56,7 +56,6 @@ bool dec_inv_item_quantity(int obj, int amount);
 bool dec_mitm_item_quantity(int obj, int amount);
 
 void inc_inv_item_quantity(int obj, int amount);
-void inc_mitm_item_quantity(crawl_environment &level, int obj, int amount);
 
 bool move_item_to_grid(int *const obj, const coord_def& p,
                         bool silent = false);
