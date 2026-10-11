@@ -967,13 +967,15 @@ bool feat_destroys_items(dungeon_feature_type feat)
 
 /** Does this feature make items that fall into it permanently inaccessible?
  */
-bool feat_eliminates_items(dungeon_feature_type feat)
+bool feat_eliminates_items(dungeon_feature_type feat,
+                           species_type player_species)
 {
     return feat_destroys_items(feat)
             // intentionally use the species version rather than the player
             // version: switching to an amphibious form doesn't give you access
             // to the items.
-            || feat == DNGN_DEEP_WATER && !species::likes_water(you.species);
+            || feat == DNGN_DEEP_WATER
+               && !species::likes_water(player_species);
 }
 
 static coord_def _dgn_find_nearest_square(

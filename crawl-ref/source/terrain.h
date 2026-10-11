@@ -11,6 +11,7 @@
 #include "command-type.h"
 #include "enum.h"
 #include "god-type.h"
+#include "species-type.h"
 #include "terrain-change-type.h"
 
 using std::vector;
@@ -112,7 +113,7 @@ void get_door_description(int door_size, const char** adjective,
                           const char** noun);
 void feat_splash_noise(dungeon_feature_type feat);
 bool feat_destroys_items(dungeon_feature_type feat);
-bool feat_eliminates_items(dungeon_feature_type feat);
+bool feat_eliminates_items(dungeon_feature_type feat, species_type species);
 
 // Terrain changed under 'pos', perform necessary effects.
 void dungeon_terrain_changed(const coord_def &pos,

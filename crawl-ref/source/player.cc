@@ -5375,10 +5375,7 @@ bool player::can_water_walk() const
 
 int player::visible_igrd(const coord_def &where) const
 {
-    if (feat_eliminates_items(env.grid(where)))
-        return NON_ITEM;
-
-    return env.igrid(where);
+    return visible_item_link(env, where, species);
 }
 
 bool player::has_spell(spell_type spell) const

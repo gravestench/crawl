@@ -3557,7 +3557,7 @@ void read(item_def* scroll, dist *target)
         // Identify it early in case the player checks the '\' screen.
         set_ident_type(*scroll, true);
 
-        if (feat_eliminates_items(env.grid(you.pos())))
+        if (feat_eliminates_items(env.grid(you.pos()), you.species))
         {
             mpr("Anything you acquired here would fall and be lost!");
             cancel_scroll = true;

@@ -72,9 +72,12 @@ are explicit; their versioned data must continue to load old files.
   pickup and menu control flow.
 - The stack API accepts explicit identification knowledge; the original
   overload remains an adapter for callers using game-wide item knowledge.
-- Floor and monster inventory iterators accept an explicit level. `items.cc`
-  uses those constructors; other callers and the visibility-checked floor
-  constructor still use legacy global adapters.
+- Floor and monster inventory iterators accept an explicit level. Visible floor
+  iteration also accepts the observing species. `items.cc` uses those
+  constructors; other callers still have legacy adapters.
+- Item visibility in deep water now takes species explicitly. The player
+  convenience method delegates to the level/species rule, and terrain code no
+  longer reads `you` to make this decision.
 - Pass the display threshold into item message formatting; keep the old
   signature as an adapter while callers migrate.
 - Add tests for partial and complete stack consumption, equipped items, stack
@@ -116,9 +119,10 @@ test runner could compile.
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,439
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,445
   assertions in 72 test cases, including item and RNG serialization checks,
-  explicit/legacy random helper parity, and independent level item iteration.
+  explicit/legacy random helper parity, and independent level item iteration
+  and visibility rules.
 - The existing `test/stress/woken_rest.rc` sprint scenario completed 1,000
   automated turns under `util/fake_pty` after the turn-stage split.
 - `test/refactor/fixtures/CompatRefactor.cs` is a fixed-seed save created

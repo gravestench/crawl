@@ -1292,7 +1292,7 @@ spret cast_apportation(int pow, bolt& beam, bool fail)
     // less than dist.
     while (location_on_path < dist)
     {
-        if (!feat_eliminates_items(env.grid(new_spot)))
+        if (!feat_eliminates_items(env.grid(new_spot), you.species))
             break;
         location_on_path++;
         if (location_on_path == dist)

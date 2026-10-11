@@ -12,6 +12,7 @@
 #include "mon-inv-type.h"
 #include "item-prop.h"
 #include "item-stack.h"
+#include "species-type.h"
 #include "tag-version.h"
 
 using std::vector;
@@ -176,6 +177,10 @@ int count_movable_items(int obj);
 
 bool valid_item_index(int i);
 
+// The visible floor stack depends on terrain and the observing species.
+int visible_item_link(const crawl_environment &level, const coord_def& pos,
+                      species_type species);
+
 // stack_iterator guarantees validity so long as you don't manually
 // mess with item_def.link: i.e., you can kill the item you're
 // examining but you can't kill the item linked to it.
@@ -185,6 +190,8 @@ public:
     explicit stack_iterator(const coord_def& pos, bool accessible = false);
     explicit stack_iterator(int start_link);
     stack_iterator(crawl_environment &level, const coord_def& pos);
+    stack_iterator(crawl_environment &level, const coord_def& pos,
+                   species_type species);
     stack_iterator(crawl_environment &level, int start_link);
 
     bool operator==(const stack_iterator& rhs) const;

@@ -467,7 +467,8 @@ static void _create_monster_hide(const item_def &corpse, bool silent)
 
     // Don't display this message if the scales were dropped over
     // lava/deep water, because then they are hardly intact.
-    if (you.see_cell(pos) && !silent && !feat_eliminates_items(env.grid(pos)))
+    if (you.see_cell(pos) && !silent
+        && !feat_eliminates_items(env.grid(pos), you.species))
     {
         // XXX: tweak for uniques/named monsters, somehow?
         mprf("%s %s intact enough to wear.",
@@ -497,7 +498,8 @@ static void _create_monster_wand(const item_def &corpse, bool silent)
 
     item.plus *= 2;
 
-    if (you.see_cell(pos) && !silent && !feat_eliminates_items(env.grid(pos)))
+    if (you.see_cell(pos) && !silent
+        && !feat_eliminates_items(env.grid(pos), you.species))
     {
         mprf("%s bone magically twists into %s.",
              mons_type_name(corpse.mon_type, DESC_A).c_str(),
@@ -573,7 +575,7 @@ item_def* place_monster_corpse(const monster& mons, bool force)
     {
         _gold_pile(corpse, mons_species(mons.type));
         // If gold would be destroyed, give it directly to the player instead.
-        if (feat_eliminates_items(env.grid(mons.pos())))
+        if (feat_eliminates_items(env.grid(mons.pos()), you.species))
         {
             get_gold(corpse, corpse.quantity, false);
             destroy_item(corpse, true);

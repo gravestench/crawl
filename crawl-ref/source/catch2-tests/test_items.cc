@@ -117,6 +117,9 @@ TEST_CASE("Item iterators read the supplied level's item storage",
     level->item[0].link = 1;
     level->item[1].base_type = OBJ_WEAPONS;
     level->item[1].link = NON_ITEM;
+    level->grid(floor_pos) = DNGN_FLOOR;
+
+    REQUIRE(visible_item_link(*level, floor_pos, SP_HUMAN) == 0);
 
     stack_iterator floor(*level, floor_pos);
     REQUIRE(floor.index() == 0);
@@ -126,6 +129,15 @@ TEST_CASE("Item iterators read the supplied level's item storage",
     REQUIRE(floor->base_type == OBJ_WEAPONS);
     ++floor;
     REQUIRE(floor == stack_iterator::end(*level));
+
+    level->grid(floor_pos) = DNGN_DEEP_WATER;
+    REQUIRE(visible_item_link(*level, floor_pos, SP_HUMAN) == NON_ITEM);
+    REQUIRE(visible_item_link(*level, floor_pos, SP_MERFOLK) == 0);
+    REQUIRE_FALSE(stack_iterator(*level, floor_pos, SP_HUMAN));
+    REQUIRE(stack_iterator(*level, floor_pos, SP_MERFOLK));
+
+    level->grid(floor_pos) = DNGN_LAVA;
+    REQUIRE(visible_item_link(*level, floor_pos, SP_MERFOLK) == NON_ITEM);
 
     monster carrier;
     carrier.inv[MSLOT_WEAPON] = 1;

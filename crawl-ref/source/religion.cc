@@ -1389,7 +1389,7 @@ static set<spell_type> _vehumet_get_spell_gifts()
 static bool _give_trog_oka_gift(bool forced)
 {
     // Break early if giving a gift now means it would be lost.
-    if (feat_eliminates_items(env.grid(you.pos())))
+    if (feat_eliminates_items(env.grid(you.pos()), you.species))
         return false;
 
     // No use for anything below. (No guarantees this will work right if these
@@ -1514,7 +1514,7 @@ static bool _give_sif_gift(bool forced)
         return false;
 
     // Break early if giving a gift now means it would be lost.
-    if (feat_eliminates_items(env.grid(you.pos())))
+    if (feat_eliminates_items(env.grid(you.pos()), you.species))
         return false;
 
     if (!forced && (you.piety < piety_breakpoint(4)

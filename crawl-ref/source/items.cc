@@ -266,8 +266,17 @@ static int _cull_items()
 }
 
 /*---------------------------------------------------------------------*/
+int visible_item_link(const crawl_environment &level, const coord_def& pos,
+                      species_type player_species)
+{
+    return feat_eliminates_items(level.grid(pos), player_species)
+           ? NON_ITEM : level.igrid(pos);
+}
+
 stack_iterator::stack_iterator(const coord_def& pos, bool accessible)
-    : stack_iterator(env, accessible ? you.visible_igrd(pos) : env.igrid(pos))
+    : stack_iterator(env, accessible
+                          ? visible_item_link(env, pos, you.species)
+                          : env.igrid(pos))
 {
 }
 
@@ -278,6 +287,12 @@ stack_iterator::stack_iterator(int start_link)
 
 stack_iterator::stack_iterator(crawl_environment &level_, const coord_def& pos)
     : stack_iterator(level_, level_.igrid(pos))
+{
+}
+
+stack_iterator::stack_iterator(crawl_environment &level_, const coord_def& pos,
+                               species_type player_species)
+    : stack_iterator(level_, visible_item_link(level_, pos, player_species))
 {
 }
 
@@ -1505,7 +1520,7 @@ void pickup(bool partial_quantity)
         // list them.
         if (!any_selectable)
         {
-            for (stack_iterator si(you.pos(), true); si; ++si)
+            for (stack_iterator si(env, you.pos(), you.species); si; ++si)
                 mprf_nocap("%s", menu_colour_item_name(*si, DESC_A).c_str());
         }
 
@@ -2396,7 +2411,7 @@ const item_def* top_item_at(const coord_def& where)
 
 static bool _check_dangerous_drop(const item_def & item)
 {
-    if (!feat_eliminates_items(env.grid(you.pos())))
+    if (!feat_eliminates_items(env.grid(you.pos()), you.species))
         return true;
 
     string prompt = "Are you sure you want to drop " + item.name(DESC_THE)
