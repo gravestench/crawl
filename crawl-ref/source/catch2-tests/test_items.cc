@@ -15,10 +15,12 @@
 #include "item-stack.h"
 #include "invent.h"
 #include "inventory-equipment.h"
+#include "inventory-mutation.h"
 #include "inventory-quantity.h"
 #include "player.h"
 #include "player-equip.h"
 #include "potion-type.h"
+#include "state.h"
 
 #include "test_player_fixture.h"
 
@@ -109,6 +111,63 @@ TEST_CASE("Inventory equipment cleanup leaves unrelated stacks alone",
     inventory_equipment::remove_stack(owner, 5, [] { FAIL("not wielded"); });
     REQUIRE(owner.equip[EQ_WEAPON] == 3);
     REQUIRE(owner.equip[EQ_SHIELD] == -1);
+}
+
+TEST_CASE("Inventory removal orders equipment and skill effects before clearing",
+          "[inventory]")
+{
+    player owner;
+    game_state commands;
+    owner.inv[4].base_type = OBJ_WEAPONS;
+    owner.inv[4].quantity = 1;
+    owner.equip[EQ_WEAPON] = 4;
+
+    int effects_seen = 0;
+    const bool removed = inventory_mutation::decrease(owner, commands, 4, 1, {
+        [&] {
+            REQUIRE(owner.equip[EQ_WEAPON] == 4);
+            REQUIRE(owner.inv[4].quantity == 1);
+            effects_seen = 1;
+        },
+        [&](const item_def &item) {
+            REQUIRE(effects_seen == 1);
+            REQUIRE(item.quantity == 1);
+            REQUIRE(owner.equip[EQ_WEAPON] == -1);
+            effects_seen = 2;
+        },
+        [&](bool autoswitch) {
+            REQUIRE_FALSE(autoswitch);
+            REQUIRE(effects_seen == 2);
+            REQUIRE(owner.inv[4].quantity == 0);
+            effects_seen = 3;
+        }
+    });
+
+    REQUIRE(removed);
+    REQUIRE(owner.wield_change);
+    REQUIRE(effects_seen == 3);
+}
+
+TEST_CASE("Inventory increase refreshes quiver only for a new stack",
+          "[inventory]")
+{
+    player owner;
+    owner.inv[4].base_type = OBJ_SCROLLS;
+    int refreshes = 0;
+    const inventory_mutation::effects callbacks = {
+        {}, {}, [&](bool autoswitch) {
+            REQUIRE(autoswitch);
+            ++refreshes;
+        }
+    };
+
+    inventory_mutation::increase(owner, 4, 2, callbacks);
+    REQUIRE(owner.inv[4].quantity == 2);
+    REQUIRE(refreshes == 1);
+
+    inventory_mutation::increase(owner, 4, 1, callbacks);
+    REQUIRE(owner.inv[4].quantity == 3);
+    REQUIRE(refreshes == 1);
 }
 
 TEST_CASE("Floor quantity updates affect only the supplied level", "[inventory]")

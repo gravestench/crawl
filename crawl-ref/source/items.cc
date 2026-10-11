@@ -42,8 +42,7 @@
 #include "hints.h"
 #include "hiscores.h"
 #include "invent.h"
-#include "inventory-equipment.h"
-#include "inventory-quantity.h"
+#include "inventory-mutation.h"
 #include "item-name.h"
 #include "item-prop.h"
 #include "item-status-flag-type.h"
@@ -269,35 +268,19 @@ static int _cull_items()
 */
 bool dec_inv_item_quantity(int obj, int amount)
 {
-    const auto plan = inventory_quantity::plan_decrease(you.inv[obj], amount);
-    const bool stack_removed =
-        plan == inventory_quantity::decrease_plan::remove_stack;
-
-    inventory_equipment::mark_weapon_changed(you, obj);
-
-    if (stack_removed)
-    {
-        inventory_equipment::remove_stack(you, obj, [] {
+    player &owner = you;
+    return inventory_mutation::decrease(owner, crawl_state, obj, amount, {
+        [] {
             unwield_item();
             canned_msg(MSG_EMPTY_HANDED_NOW);
-        });
-
-        item_skills(you.inv[obj], you.skills_to_hide);
-    }
-
-    inventory_quantity::apply_decrease(you.inv[obj], amount, plan);
-
-    if (stack_removed)
-    {
-        // If we're repeating a command, the repetitions used up the
-        // item stack being repeated on, so stop rather than move onto
-        // the next stack.
-        crawl_state.cancel_cmd_repeat(you);
-        crawl_state.cancel_cmd_again(you);
-        quiver::on_actions_changed();
-    }
-
-    return stack_removed;
+        },
+        [&owner](const item_def &item) {
+            item_skills(item, owner.skills_to_hide);
+        },
+        [&owner](bool check_autoswitch) {
+            owner.quiver_action.on_actions_changed(check_autoswitch);
+        }
+    });
 }
 
 // Reduce quantity of a monster/grid item, do cleanup if item goes away.
@@ -326,11 +309,12 @@ bool dec_mitm_item_quantity(int obj, int amount)
 
 void inc_inv_item_quantity(int obj, int amount)
 {
-    inventory_equipment::mark_weapon_changed(you, obj);
-
-    inventory_quantity::increase(you.inv[obj], amount);
-    if (you.inv[obj].quantity == amount) // not currently possible?
-        quiver::on_actions_changed(true);
+    player &owner = you;
+    inventory_mutation::increase(owner, obj, amount, {
+        {}, {}, [&owner](bool check_autoswitch) {
+            owner.quiver_action.on_actions_changed(check_autoswitch);
+        }
+    });
 }
 
 void inc_mitm_item_quantity(crawl_environment &level, int obj, int amount)

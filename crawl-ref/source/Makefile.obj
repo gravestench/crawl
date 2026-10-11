@@ -89,6 +89,7 @@ initfile.o \
 invent.o \
 inventory-quantity.o \
 inventory-equipment.o \
+inventory-mutation.o \
 item-iterators.o \
 item-use.o \
 item-name.o \
