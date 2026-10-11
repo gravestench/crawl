@@ -122,7 +122,7 @@ are explicit; their versioned data must continue to load old files.
   separate changes.
 - Persistent RNG streams now have a `rng::persistent_state` owner. The global
   functions remain as adapters until callers receive a stream explicitly.
-  Stream selection and temporary subgenerators still use process-wide state.
+  Scoped generator adapters still select streams on the process-wide instance.
 - `rng::bounded`, `rng::range`, and `rng::flip` accept a specific stream. The
   legacy random helpers delegate to them with the currently selected stream.
 - Stream choice and temporary subgenerator selection now live in
@@ -143,12 +143,14 @@ test runner could compile.
 - Console game built with `FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease`.
 - After `crawl -dir <writable-directory> -builddb`, the game's `-test -seed 1`
   suite completed successfully.
-- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,453
-  assertions in 74 test cases, including item and RNG serialization checks,
+- `make FORCE_PKGCONFIG=1 FULLDEBUG=YesPlease catch2-tests` passed: 8,503
+  assertions in 83 test cases, including item and RNG serialization checks,
   explicit/legacy random helper parity, and independent level item iteration
-  and visibility rules, and independent command state queries.
-- The existing `test/stress/woken_rest.rc` sprint scenario completed 1,000
-  automated turns under `util/fake_pty` after the turn-stage split.
+  and visibility rules, independent command state queries, and turn checkpoint
+  policy.
+- `test/refactor/check-turn-stress.sh` runs the existing
+  `test/stress/woken_rest.rc` scenario on a named Sprint map and checks that
+  the character survives exactly 1,000 fixed-seed turns.
 - `test/refactor/fixtures/CompatRefactor.cs` is a fixed-seed save created
   before persistent RNG ownership changed. The compatibility script loads it
   and saves after five more turns.
@@ -170,6 +172,6 @@ test runner could compile.
 5. Add old saves from supported versions before changing `files.cc` or
    `tags.cc`. Each must load, advance, and resave in the console test harness.
 
-The fixed-seed combat and transition transcripts, equipped-item tests, and
-inventory/level transition tests are still needed to complete the first two
-milestones. The codebase-wide refactor remains in progress.
+Fixed-seed combat and level-transition transcripts, direct equipped-item
+consumption coverage, and inventory/level transition tests remain to complete
+the first two milestones. The codebase-wide refactor remains in progress.
